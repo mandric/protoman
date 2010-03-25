@@ -1,0 +1,44 @@
+
+http://www.phpframeworks.com/
+
+ORM
+X    Lazy loading
+X    Implied autoincrement ID's
+X    Foreign key handling
+X    One-to-many handling
+X    Object caching
+    Query caching
+
+URL's
+    Default slug field
+    Default URL routing based on plural name and slug field value or id
+    Dynamic URL routing by module name and view functions
+    Completely custom URL routing, programmer-defined
+
+Admin
+    Generic listing and editing based on type
+    Specify text vs. varchar in models ('' vs "", perhaps)
+
+Settings
+    Module/plugin loading
+
+Templating
+    Suggestions to user without enforcing?
+    Default methods on models specifically intended for list/detail?
+
+Caching
+    Leave entirely to server?
+
+Auth
+    Basic user model
+    Group model
+    Permissions assignable to users and/or groups
+
+Generic AJAX support
+    Fallback REST support for AJAX links
+
+Controller structure
+    
+
+Explicit session support
+    
