@@ -93,7 +93,7 @@ class ArrayProcessor extends ArrayObject
 
 
 $mc = false;
-/*
+
 try
 {
     $memcache = new Memcache;
@@ -113,7 +113,7 @@ catch (Exception $e)
 {
     echo $e->getMessage();
 }
-*/
+
 define('MC_ENABLED', $mc);
 
 
@@ -697,7 +697,6 @@ abstract class Saveable
                 foreach (Saveable::$singlerels[$this->type] as $target_type)
                 {
                     $update = "update `{$target_type}` set `{$this->type}`=0 where `{$this->type}`='{$this->id}'";
-                    echo "$update\n";
                     mysql_query($update);
                 }
             }

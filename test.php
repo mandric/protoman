@@ -43,6 +43,6 @@ $s1->thing = $t1;
 $s1->save();
 
 $u1->delete();
-$t1->delete();
+#$t1->delete();
 #$u2->delete();
 #$s1->delete();
