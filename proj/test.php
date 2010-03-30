@@ -13,6 +13,13 @@ $apps = array(
 require_once('settings.php');
 
 
+echo "<pre>";
+print_r(Route::$routes);
+print_r(Type::$types);
+print_r(Controller::$controllers);
+echo "</pre>";
+
+
 $u1 = new User();
 $u1->name = 'Bob';
 $u1->save();
@@ -31,6 +38,6 @@ $s1->thing = $t1;
 $s1->save();
 
 $u1->delete();
-#$t1->delete();
-#$u2->delete();
-#$s1->delete();
+$t1->delete();
+$u2->delete();
+$s1->delete();
