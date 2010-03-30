@@ -19,6 +19,21 @@ Admin
     Generic listing and editing based on type
     Specify text vs. varchar in models ('' vs "", perhaps)
 
+Apps
+    controller.php - Single class with methods to be called from routes.php
+    routes.php - Define URL routing
+    classes.php - Define classes
+    types.php - Define types with validation?
+        Implement framework-defined Type interface with validation methods and form input type?
+        Populate a Type class var with subclasses to use as types?
+            Auto-instantiate in constructor?
+            Optional array of types to override class defaults?
+                Override with predefined method in ORM to avoid required constructor overload?
+    templates/ - App-specific template blocks
+
+Form generation
+    Particularly for admin
+
 Settings
     Module/plugin loading
 

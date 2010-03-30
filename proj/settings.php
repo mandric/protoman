@@ -1,7 +1,7 @@
 <?php
 
 
-define('DEBUG', false);
+define('DEBUG', true);
 
 $db = array();
 
@@ -29,13 +29,4 @@ define('DB_USER', $db['user']);
 define('DB_PASS', $db['pass']);
 define('DB_NAME', $db['name']);
 
-
-session_start();
-
-(mysql_connect(DB_HOST, DB_USER, DB_PASS) && mysql_select_db(DB_NAME))
- || die("Connection error: " . mysql_error()) ;
-
-function __autoload($class_name)
-{
-    trigger_error("Classes extending Saveable MUST be loaded without relying on __autoload(...)", E_USER_WARNING);
-}
+require_once("../framework.php");

@@ -92,31 +92,6 @@ class ArrayProcessor extends ArrayObject
 }
 
 
-$mc = false;
-
-try
-{
-    $memcache = new Memcache;
-    
-    if (defined('MC_PIDFILE'))
-    {
-        $memcache->connect(MC_PIDFILE, 0);
-    }
-    else
-    {
-        $memcache->connect(MC_HOST, MC_PORT);
-    }
-    
-    $mc = true;
-}
-catch (Exception $e)
-{
-    echo $e->getMessage();
-}
-
-define('MC_ENABLED', $mc);
-
-
 abstract class Saveable
 {
     protected $id = 0;

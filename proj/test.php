@@ -1,28 +1,16 @@
 <?php
 
 
+define('FRAMEWORK_PATH', '../phporm/');
+
+define('DEBUG', true);
+
+$apps = array(
+    'appname',
+    );
+
+
 require_once('settings.php');
-require_once('db/Saveable.php');
-
-
-class User extends Saveable
-{
-    protected $name = '';
-}
-
-
-class Thing extends Saveable
-{
-    protected $plural_name = 'thingies';
-    
-    protected $users = array();
-}
-
-
-class Stuff extends Saveable
-{
-    protected $thing = 0;
-}
 
 
 $u1 = new User();
