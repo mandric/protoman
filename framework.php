@@ -8,16 +8,20 @@ session_start();
 
 
 $loadables = array(
-    'Types' => 'types.php',
-    'Classes' => 'classes.php',
-    'Controllers' => 'controller.php',
-    'Routes' => 'routes.php',
+    'types.php',
+    'classes.php',
+    'controller.php',
+    'routes.php',
     );
 
+
 require_once('db/Saveable.php');
+require_once('base/Type.php');
+require_once('base/Controller.php');
+require_once('base/Route.php');
 
 
-foreach ($loadables as $classname => $filename)
+foreach ($loadables as $filename)
 {
     foreach ($apps as $app)
     {
@@ -25,7 +29,6 @@ foreach ($loadables as $classname => $filename)
         
         if (is_file($loadable))
         {
-            echo "$loadable<br />";
             require_once($loadable);
         }
     }
@@ -48,14 +51,12 @@ try
     
     if (defined('MC_PIDFILE'))
     {
-        $memcache->connect(MC_PIDFILE, 0);
+        $mc = $memcache->connect(MC_PIDFILE, 0);
     }
-    else
+    else if ( defined('MC_HOST') && defined('MC_PORT') )
     {
-        $memcache->connect(MC_HOST, MC_PORT);
+        $mc = $memcache->connect(MC_HOST, MC_PORT);
     }
-    
-    $mc = true;
 }
 catch (Exception $e)
 {
@@ -66,3 +67,4 @@ catch (Exception $e)
 }
 
 define('MC_ENABLED', $mc);
+echo $mc;

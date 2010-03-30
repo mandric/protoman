@@ -22,7 +22,8 @@ else
 
 //define('MC_HOST', 'localhost');
 //define('MC_PORT', '11211');
-define('MC_PIDFILE', 'unix:///var/run/memcached/memcached.sock');
+// Or...
+//define('MC_PIDFILE', 'unix:///var/run/memcached/memcached.sock');
 
 define('DB_HOST', $db['host']);
 define('DB_USER', $db['user']);
