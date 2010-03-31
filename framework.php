@@ -137,7 +137,7 @@ Controller::process($_SERVER['QUERY_STRING']);
 
 echo Response::$content;
 
-
+/*
 if (DEBUG)
 {
     echo "<hr /><pre>";
@@ -159,3 +159,4 @@ if (DEBUG)
     
     echo "</pre>";
 }
+*/

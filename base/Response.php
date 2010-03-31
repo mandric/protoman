@@ -7,7 +7,8 @@ class Response
     public static $content = '';
     private static $blocks = array();
     
-    private static $in_template = false;
+    private static $template_level = 0;
+    private static $extends = array();
     
     public static function startBlock($name)
     {
@@ -43,15 +44,23 @@ class Response
     
     public static function extendTemplate()
     {
-        Response::$in_template = false;
+        /*
+        if (Response::$in_template)
+        {
+            if (DEBUG)
+            {
+                trigger_error("Manual reset of Response::\$in_template", E_USER_WARNING);
+            }
+            
+            Response::$in_template = false;
+        }
+        */
         $args = func_get_args();
-        call_user_func_array(array('Response', 'renderTemplate'), $args);
+        Response::$extends[] = $args;
     }
     
     public static function renderTemplate()
     {
-        $return = (Response::$in_template) ? true : false ;
-        
         $args = func_get_args();
         
         switch (count($args))
@@ -82,7 +91,7 @@ class Response
         
         $content = false;
         
-        Response::$in_template = true;
+        Response::$template_level++;
         
         foreach ($path_parts as $parts)
         {
@@ -104,13 +113,18 @@ class Response
             throw new Exception("Attempted to load a nonexistent template");
         }
         
-        if (!$return)
-        {
-            Response::$in_template = false;
-        }
-        else
+        Response::$template_level--;
+        
+        if (Response::$template_level > 0)
         {
             return $content;
+        }
+        
+        foreach (Response::$extends as $key => $args)
+        {
+            unset(Response::$extends[$key]);
+            call_user_func_array(array('Response', 'renderTemplate'), $args);
+            return;
         }
         
         Response::$content .= $content;
