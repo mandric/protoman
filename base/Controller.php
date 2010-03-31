@@ -7,11 +7,20 @@ class Controller
     
     public static function process($querystring)
     {
+        // TODO: Replace this with something else?  Hackish but OK?
+        $querystring = preg_replace('/([\/]+)$/', '', trim($querystring));
+        
         foreach (Route::$routes as $url => $method)
         {
-            if ($url == $querystring)
+            $matches = array();
+            
+            $regex = '/^' . str_replace('/', '\/', preg_replace('/([\/]+)$/', '', $url)) . '(\/{0,1})$/';
+            preg_match($regex, $querystring, $matches);
+            
+            if (count($matches))
             {
-                call_user_func($method);
+                call_user_func($method, array_slice($matches, 1));
+                break;
             }
         }
     }
