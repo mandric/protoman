@@ -59,6 +59,7 @@ require_once('db/Saveable.php');
 require_once('base/Controller.php');
 require_once('base/Route.php');
 
+// TODO: Load template directories into path for inclusion?  Custom cascading include for templates?
 
 foreach ($loadables as $filename)
 {
