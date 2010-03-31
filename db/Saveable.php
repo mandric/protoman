@@ -102,8 +102,9 @@ abstract class Saveable
     protected $loaded = false;
     protected $is_saveable = true;
     
+    public static $subclasses = array();
+    
     private static $instances = array();
-    private static $subclasses = array();
     private static $singlerels = array();
     private static $manyrels = array();
     
@@ -127,31 +128,6 @@ abstract class Saveable
         
         if ($build_list && !count(Saveable::$subclasses))
         {
-            $declared = get_declared_classes();
-            $post_saveable = false;
-            
-            foreach ($declared as $classname)
-            {
-                $classname = strtolower($classname);
-                
-                if (!$post_saveable)
-                {
-                    if ($classname == 'saveable')
-                    {
-                        $post_saveable = true;
-                    }
-                    
-                    continue;
-                }
-                
-                $obj = new $classname(false, false);
-                
-                if (is_subclass_of($obj, 'saveable') || is_subclass_of($obj, 'Saveable'))
-                {
-                    Saveable::$subclasses[$obj->plural_name] = $obj->type;
-                }
-            }
-            
             $plural_names = array_keys(Saveable::$subclasses);
             
             foreach (Saveable::$subclasses as $plural_name => $type_name)

@@ -3,7 +3,7 @@
 
 class AppController extends Controller
 {
-    protected function testConMethod($id)
+    public function testConMethod($id = 0)
     {
         echo "In test controller.<br />Include a template or something here.";
     }

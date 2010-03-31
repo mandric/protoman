@@ -3,7 +3,7 @@
 
 class Type
 {
-    public static $types;
+    public static $types = array();
     
     public function __construct()
     {

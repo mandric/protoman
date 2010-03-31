@@ -3,7 +3,7 @@
 
 class Route
 {
-    public static $routes;
+    public static $routes = array();
     
     public function __construct($array)
     {

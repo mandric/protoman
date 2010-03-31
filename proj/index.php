@@ -12,14 +12,8 @@ $apps = array(
 
 require_once('settings.php');
 
-
-echo "<pre>";
-print_r(Route::$routes);
-print_r(Type::$types);
-print_r(Controller::$controllers);
-echo "</pre>";
-
-
+// Leftover ORM tests.
+/*
 $u1 = new User();
 $u1->name = 'Bob';
 $u1->save();
@@ -41,3 +35,4 @@ $u1->delete();
 $t1->delete();
 $u2->delete();
 $s1->delete();
+*/

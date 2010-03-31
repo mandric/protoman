@@ -2,5 +2,5 @@
 
 
 new Route(array(
-    '/test/path' => 'controller_methodname',
+    '/test/path' => array('AppController', 'TestConMethod'),
     ));
