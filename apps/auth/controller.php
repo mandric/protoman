@@ -5,6 +5,13 @@ class AuthController extends Controller
 {
     public function loginRequired($args = array())
     {
-        echo "Requiring login.<br />";
+        if (!$_SESSION['framework'][SITE_NAME]['user'] || !$_SESSION['framework'][SITE_NAME]['user']->id)
+        {
+            Response::renderTemplate('auth.login_form.html');
+            
+            return false;
+        }
+        
+        return true;
     }
 }

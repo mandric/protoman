@@ -19,7 +19,13 @@ class Controller
             {
                 foreach ($methods as $method)
                 {
-                    call_user_func($method, array_slice($matches, 1));
+                    $result = call_user_func($method, array_slice($matches, 1));
+                    
+                    // Return false from a controller method to prevent others from running, i.e. loginRequired
+                    if ($result === false)
+                    {
+                        break;
+                    }
                 }
                 
                 // TODO: Return something chainable?  Request class?

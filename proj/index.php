@@ -1,6 +1,8 @@
 <?php
 
 
+define('SITE_NAME', "Test Site");
+
 $apps = array(
     'auth',
     'appname',
