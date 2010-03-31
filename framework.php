@@ -60,7 +60,11 @@ require_once('base/Framework.php');
 require_once('base/Request.php');
 require_once('base/Response.php');
 
-// TODO: Load template directories into path for inclusion?  Custom cascading include for templates?
+$builtin_apps = array(
+    'db_types',
+    );
+
+$apps = array_merge($builtin_apps, $apps);
 
 foreach ($loadables as $filename)
 {
@@ -111,9 +115,9 @@ foreach ($declared as $classname)
     {
         Saveable::$subclasses[$obj->plural_name] = $obj->type;
     }
-    else if (is_subclass_of($obj, 'Type'))
+    else if (is_a($obj, 'Type'))
     {
-        Type::$types[] = $classname;
+        Framework::$types[] = $classname;
     }
     else if (is_subclass_of($obj, 'Controller'))
     {
@@ -147,7 +151,7 @@ if (DEBUG)
     echo "Controllers: ";
     print_r(Framework::$controllers);
     
-    echo "Request: ";
+    echo "Request params: ";
     print_r(Request::$params);
     
     echo "Response context: ";

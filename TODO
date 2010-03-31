@@ -1,5 +1,6 @@
 
-http://www.phpframeworks.com/
+Settings
+X    Module/plugin loading
 
 ORM
 X    Lazy loading
@@ -9,33 +10,31 @@ X    One-to-many handling
 X    Object caching
     Query caching
 
-URL's
-    Default slug field
-    Default URL routing based on plural name and slug field value or id
-    Dynamic URL routing by module name and view functions
-    Completely custom URL routing, programmer-defined
-
-Admin
-    Generic listing and editing based on type
-    Specify text vs. varchar in models ('' vs "", perhaps)
-
 Apps
-    controller.php - Single class with methods to be called from routes.php
-    routes.php - Define URL routing
-    classes.php - Define classes
+X    controller.php - Single class with methods to be called from routes.php
+X    routes.php - Define URL routing
+X    classes.php - Define classes
+X    templates/ - App-specific template blocks
     types.php - Define types with validation?
         Implement framework-defined Type interface with validation methods and form input type?
         Populate a Type class var with subclasses to use as types?
             Auto-instantiate in constructor?
             Optional array of types to override class defaults?
                 Override with predefined method in ORM to avoid required constructor overload?
-    templates/ - App-specific template blocks
+
+URL's
+X    Dynamic URL routing by module name and view functions
+X    Completely custom URL routing, programmer-defined
+    Default slug field?
+    Default URL routing based on plural name and slug field value or id?
+
+Admin
+    Generic listing and editing based on type
+    Specify text vs. varchar in models ('' vs "", perhaps)
+        Use Framework::$types: $varname = 'TextField'?
 
 Form generation
     Particularly for admin
-
-Settings
-    Module/plugin loading
 
 Templating
     Suggestions to user without enforcing?
@@ -45,15 +44,9 @@ Caching
     Leave entirely to server?
 
 Auth
-    Basic user model
+X    Basic user model
     Group model
     Permissions assignable to users and/or groups
 
 Generic AJAX support
     Fallback REST support for AJAX links
-
-Controller structure
-    
-
-Explicit session support
-    

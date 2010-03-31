@@ -24,10 +24,10 @@ class Route
 }
 
 
-class Type
+interface Type
 {
-    public function __construct()
-    {
-        Framework::$types[] = $this;
-    }
+    public function serialize();
+    public function displaySafe();
+    public function displayRaw();
+    public function form();
 }
