@@ -1,6 +1,9 @@
 <?php
 
 
+define('FRAMEWORK_PATH', substr(FRAMEWORK_PATH, 0, strrpos(FRAMEWORK_PATH, '/') + 1));
+
+
 session_start();
 
 (mysql_connect(DB_HOST, DB_USER, DB_PASS) && mysql_select_db(DB_NAME))
@@ -118,13 +121,18 @@ Controller::process($querystring);
 if (DEBUG)
 {
     echo "<hr><pre>";
+    
     echo "Routes: ";
     print_r(Route::$routes);
+    
     echo "Types: ";
     print_r(Type::$types);
+    
     echo "Controllers: ";
     print_r(Controller::$controllers);
+    
     echo "GET values: ";
     print_r($_GET);
+    
     echo "</pre>";
 }

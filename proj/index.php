@@ -1,8 +1,6 @@
 <?php
 
 
-define('FRAMEWORK_PATH', '../phporm/');
-
 define('DEBUG', true);
 
 $apps = array(

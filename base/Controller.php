@@ -26,11 +26,9 @@ class Controller
         
         if (DEBUG)
         {
-            trigger_error("No URL found to match query: " . $querystring, E_USER_WARNING);
+            trigger_error("404 handler being invoked for: " . $querystring, E_USER_WARNING);
         }
-        else
-        {
-            // 404 redirection here
-        }
+        
+        // TODO: 404 handling here
     }
 }
