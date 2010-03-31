@@ -3,14 +3,12 @@
 
 class Controller
 {
-    public static $controllers = array();
-    
     public static function process($querystring)
     {
         // TODO: Replace this with something else?  Hackish but OK?
         $querystring = preg_replace('/[\/]+$/', '', trim($querystring));
         
-        foreach (Route::$routes as $url => $method)
+        foreach (Framework::$routes as $url => $methods)
         {
             $matches = array();
             
@@ -19,7 +17,12 @@ class Controller
             
             if (count($matches))
             {
-                call_user_func($method, array_slice($matches, 1));
+                foreach ($methods as $method)
+                {
+                    call_user_func($method, array_slice($matches, 1));
+                }
+                
+                // TODO: Return something chainable?  Request class?
                 return;
             }
         }

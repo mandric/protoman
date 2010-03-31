@@ -1,9 +1,8 @@
 <?php
 
 
-define('DEBUG', true);
-
 $apps = array(
+    'auth',
     'appname',
     );
 

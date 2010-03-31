@@ -1,12 +1,6 @@
 <?php
 
 
-class User extends Saveable
-{
-    protected $name = '';
-}
-
-
 class Thing extends Saveable
 {
     protected $plural_name = 'thingies';

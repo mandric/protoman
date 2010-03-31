@@ -1,8 +1,8 @@
 <?php
 
 
-define('FRAMEWORK_PATH', substr(FRAMEWORK_PATH, 0, strrpos(FRAMEWORK_PATH, '/') + 1));
-
+define('FRAMEWORK_PATH', substr(__FILE__, 0, strrpos(__FILE__, '/') + 1));
+define('FRAMEWORK_APPS_PATH', FRAMEWORK_PATH . 'apps/');
 
 session_start();
 
@@ -54,10 +54,11 @@ $loadables = array(
 
 
 // The order here is important!  Changing it could break loading.
-require_once('base/Type.php');
 require_once('db/Saveable.php');
 require_once('base/Controller.php');
-require_once('base/Route.php');
+require_once('base/Framework.php');
+require_once('base/Request.php');
+require_once('base/Response.php');
 
 // TODO: Load template directories into path for inclusion?  Custom cascading include for templates?
 
@@ -67,7 +68,19 @@ foreach ($loadables as $filename)
     {
         $loadable = $app . "/" . $filename;
         
+        $import = false;
+        
         if (is_file($loadable))
+        {
+            $import = true;
+        }
+        else if (is_file(FRAMEWORK_APPS_PATH . $loadable))
+        {
+            $import = true;
+            $loadable = FRAMEWORK_APPS_PATH . $loadable;
+        }
+        
+        if ($import)
         {
             require_once($loadable);
         }
@@ -104,36 +117,41 @@ foreach ($declared as $classname)
     }
     else if (is_subclass_of($obj, 'Controller'))
     {
-        Controller::$controllers[$classname] = array();
+        Framework::$controllers[$classname] = array();
         
         foreach (get_class_methods($classname) as $method)
         {
-            Controller::$controllers[$classname][] = strtolower($method);
+            Framework::$controllers[$classname][] = strtolower($method);
         }
     }
 }
 
 
-$querystring = $_GET['q'];
+Request::$params = $_REQUEST;
 
-Controller::process($querystring);
+Controller::process($_SERVER['QUERY_STRING']);
+
+echo Response::$content;
 
 
 if (DEBUG)
 {
-    echo "<hr><pre>";
+    echo "<hr /><pre>";
     
     echo "Routes: ";
-    print_r(Route::$routes);
+    print_r(Framework::$routes);
     
     echo "Types: ";
-    print_r(Type::$types);
+    print_r(Framework::$types);
     
     echo "Controllers: ";
-    print_r(Controller::$controllers);
+    print_r(Framework::$controllers);
     
-    echo "GET values: ";
-    print_r($_GET);
+    echo "Request: ";
+    print_r(Request::$params);
+    
+    echo "Response context: ";
+    print_r(Response::$context);
     
     echo "</pre>";
 }
