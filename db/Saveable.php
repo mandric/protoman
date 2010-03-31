@@ -1,35 +1,6 @@
 <?php
 
 
-/*
- * Usage: class Classname extends Saveable { ... }
- * 
- * All member variables MUST have defaults.
- * 
- * For joins, create a member var that's an array named for the table you're joining to, and populate it with objects.
- * Marks object dirty when values are changed; only saves dirty objects.
- * Appending objects to the correct array (e.g. User objects to 'users' array) will immediately associate in the database.
- * Plural names may be specified by subclasses and will then be used in all queries as the variable and table name.
- * 
- * Single assocations: For fields such as ->user_id, assigning a User object to ->user will have the same effect.
- * 
- * Supported calls:
- * ->save()                Cascading save of unsaved/dirty objects.
- * ->delete()            Removal of database entry corresponding to item's type and id.  Does not cascade.
- * 
- * Magic methods implemented:
- * ->__construct(values)    Creates from DB if values is an id, otherwise creates empty or with vars specified in array.
- * ->__get(name)            Returns specified member var; throws exception on bad call in debug mode.
- * ->__set(name, value)        Sets specified member var; throws exception on bad call in debug mode.  Also handles single assocations.
- * 
- * Database scheme:
- * class User maps to table user.
- * association with class Permission uses lower case table names alphabetically: join table should be permission_user.
- * single assocations should use lower cased class names followed by _id: user_id.
- * 
- */
-
-
 class ArrayProcessor extends ArrayObject
 {
     private $obj;

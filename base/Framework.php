@@ -26,7 +26,8 @@ class Route
 
 interface Type
 {
-    public function serialize();
+    public function columnSql();
+    public function databaseValue();
     public function displaySafe();
     public function displayRaw();
     public function form();
