@@ -5,8 +5,48 @@ class Response
 {
     public static $context = array();
     public static $content = '';
+    private static $blocks = array();
     
     private static $in_template = false;
+    
+    public static function startBlock($name)
+    {
+        if (!Response::$blocks[$name])
+        {
+            Response::$blocks[$name] = false;
+            ob_start();
+        }
+    }
+    
+    public static function endBlock($name)
+    {
+        if (!Response::$blocks[$name])
+        {
+            Response::$blocks[$name] = ob_get_contents();
+            ob_end_clean();
+        }
+    }
+    
+    public static function renderBlock($name)
+    {
+        if (Response::$blocks[$name])
+        {
+            return Response::$blocks[$name];
+        }
+        else if (DEBUG)
+        {
+            trigger_error("Attempted to render nonexistent block: $name", E_USER_WARNING);
+        }
+        
+        return '';
+    }
+    
+    public static function extendTemplate()
+    {
+        Response::$in_template = false;
+        $args = func_get_args();
+        call_user_func_array(array('Response', 'renderTemplate'), $args);
+    }
     
     public static function renderTemplate()
     {
