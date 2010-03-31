@@ -1,6 +1,8 @@
 
 Custom login template override
-<br />
+
+<?php print Response::renderTemplate('test.php'); ?>
+
 <form method="POST">
     
     username: <input type="text" name="username" />

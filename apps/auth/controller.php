@@ -7,7 +7,7 @@ class AuthController extends Controller
     {
         if (!$_SESSION['framework'][SITE_NAME]['user'] || !$_SESSION['framework'][SITE_NAME]['user']->id)
         {
-            Response::renderTemplate('auth.login_form.html');
+            Response::renderTemplate('auth', 'login_form.php');
             
             return false;
         }

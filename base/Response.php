@@ -8,26 +8,41 @@ class Response
     
     private static $in_template = false;
     
-    public static function renderTemplate($app_template)
+    public static function renderTemplate()
     {
         $return = (Response::$in_template) ? true : false ;
         
-        $names = explode('.', $app_template);
-        $app_name = $names[0];
-        $template_name = implode('.', array_slice($names, 1));
+        $args = func_get_args();
         
-        // Find template:
-        // [app]/templates
-        // [proj]/templates/[app]
-        // [framework]/apps/[app]/templates
-        
-        $path_parts = array(
-            array($app_name, 'templates', $template_name),
-            array('templates', $app_name, $template_name),
-            array(FRAMEWORK_APPS_PATH, $app_name, 'templates', $template_name),
-            );
+        switch (count($args))
+        {
+            case 1:
+                $template_name = $args[0];
+                
+                $path_parts = array(
+                    array('templates', $template_name),
+                    );
+                
+                break;
+            case 2:
+                $app_name = $args[0];
+                $template_name = $args[1];
+                
+                $path_parts = array(
+                    array($app_name, 'templates', $template_name),
+                    array('templates', $app_name, $template_name),
+                    array(FRAMEWORK_APPS_PATH, $app_name, 'templates', $template_name),
+                    );
+                
+                break;
+            default:
+                throw new Exception("Invalid renderTemplate call: Takes 1 or 2 arguments, given: " . print_r($args, true));
+                break;
+        }
         
         $content = false;
+        
+        Response::$in_template = true;
         
         foreach ($path_parts as $parts)
         {
@@ -49,16 +64,11 @@ class Response
             throw new Exception("Attempted to load a nonexistent template");
         }
         
-        Response::$in_template = true;
-        
-        // require template file
-        
         if (!$return)
         {
-            Response::$in_template = true;
+            Response::$in_template = false;
         }
-        
-        if ($return)
+        else
         {
             return $content;
         }
