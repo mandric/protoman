@@ -10,6 +10,11 @@ class CharField implements Type
     protected $null = false;
     protected $length = 256;
     
+    public function validate()
+    {
+        return (is_string($this->value) || is_numeric($this->value));
+    }
+    
     public function columnSql()
     {
         $create = array();
@@ -75,6 +80,11 @@ class TextField implements Type
     protected $value = '';
     protected $null = false;
     
+    public function validate()
+    {
+        return (is_string($this->value) || is_numeric($this->value));
+    }
+    
     public function columnSql()
     {
         $create = array();
@@ -132,13 +142,29 @@ class TextField implements Type
 }
 
 
-class ForeignKeyField implements Type
+class ForeignKeyField implements SingleRelationType
 {
     protected $label = '';
     protected $name = '';
     protected $class = '';
     protected $default = 0;
     protected $value = false;
+    protected $null = false;
+    
+    public function validate()
+    {
+        if (is_a($this->value, $this->class) && $this->value->id)
+        {
+            return true;
+        }
+        
+        if ($this->null && !$this->value)
+        {
+            return true;
+        }
+        
+        return false;
+    }
     
     public function columnSql()
     {
