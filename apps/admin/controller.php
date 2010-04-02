@@ -10,4 +10,12 @@ class AdminController extends Controller
         $form = new Form($thing);
         $form->render();
     }
+    
+    public function objectListing($class)
+    {
+        $obj = new $class();
+        Response::$context['listing_objects'] = $obj->getAll();
+        
+        return Response::renderTemplate('admin', 'object_listing.php');
+    }
 }
