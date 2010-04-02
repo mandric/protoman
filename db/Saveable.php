@@ -94,7 +94,7 @@ abstract class Saveable
                 if (is_array($value))
                 {
                     $value_type = $value[0];
-                    $this->$key = new $value_type($this, array_slice($value, 1));
+                    $this->$key = new $value_type($this, $key, array_slice($value, 1));
                 }
                 else
                 {
@@ -208,13 +208,21 @@ abstract class Saveable
         return true;
     }
     
-    private function getTypeFromColumn($column)
+    public static function getFields($obj)
     {
-        $type = str_replace('_id', '', trim($column));
-        $type = str_replace('_', ' ', $type);
-        $type = str_replace(' ', '', ucwords($type));
+        $fields = array();
         
-        return $type;
+        $vars = get_object_vars($obj);
+        
+        foreach ($vars as $key => $var)
+        {
+            if (is_object($var) && is_a($var, 'Type'))
+            {
+                $fields[$key] = $var;
+            }
+        }
+        
+        return $fields;
     }
     
     public function unjoin($type)
@@ -301,6 +309,15 @@ abstract class Saveable
         
         foreach ($values as $key => $value)
         {
+            if (method_exists($value, 'validate'))
+            {
+                if (!$value->validate())
+                {
+                    // TODO: Throw exception on validation failure?
+                    trigger_error("Validation exception on field {$key}, class {$class}", E_USER_WARNING);
+                }
+            }
+            
             if (method_exists($value, 'save'))
             {
                 $value->save();

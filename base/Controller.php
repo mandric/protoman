@@ -3,12 +3,17 @@
 
 class Controller
 {
-    public static function process($querystring)
+    public static function process($querystring, $routes=false)
     {
+        if (!$routes)
+        {
+            $routes = Framework::$routes;
+        }
+        
         // TODO: Replace this with something else?  Hackish but OK?
         $querystring = preg_replace('/[\/]+$/', '', trim($querystring));
         
-        foreach (Framework::$routes as $url => $methods)
+        foreach ($routes as $url => $route)
         {
             $matches = array();
             
@@ -16,20 +21,38 @@ class Controller
             preg_match($regex, $querystring, $matches);
             
             if (count($matches))
-            {
-                foreach ($methods as $method)
+            {             
+                foreach ($matches as $key => $value)
                 {
-                    $result = call_user_func_array($method, array_slice($matches, 1));
-                    
-                    // Return false from a controller method to prevent others from running, i.e. loginRequired
-                    if ($result === false)
+                    if (!is_numeric($key))
                     {
-                        break;
+                        unset($matches[$key]);
                     }
                 }
                 
-                // TODO: Return something chainable?  Request class?
-                return;
+                if (is_array($route))
+                {
+                    foreach ($route as $method)
+                    {
+                        $result = call_user_func_array($method, array_slice($matches, 1));
+                        
+                        // Return false from a controller method to prevent others from running, i.e. loginRequired
+                        if ($result === false)
+                        {
+                            break;
+                        }
+                    }
+                    
+                    // TODO: Return something chainable?  Request class?
+                    return;
+                }
+                else if (is_string($route))
+                {
+                    if (in_array($route, Framework::$apps))
+                    {
+                        return Controller::process($matches[1], Framework::$routes[$route]);
+                    }
+                }
             }
         }
         

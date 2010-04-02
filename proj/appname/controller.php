@@ -5,10 +5,6 @@ class AppController extends Controller
 {
     public function testOrm()
     {
-        $t = new Thing(1);
-        echo "<pre>";
-        print_r($t->users);
-        /*
         $u1 = new User();
         $u1->save();
         $u1->first_name = 'Bob';
@@ -28,10 +24,7 @@ class AppController extends Controller
         $t1->users[] = $u2;
         $t1->users[] = $u1;
         
-        echo "<pre>";
-        print_r($s1);
-        echo "</pre>";
-        */
+        $t1->delete();
     }
     
     public function testConMethod($id)
@@ -44,8 +37,9 @@ class AppController extends Controller
         echo "In test controller.<br />Super awesome wordy stuff!<br />Passed ID: $id<br />Passed slug: $slug<br />";
     }
     
-    public function inputMethod()
+    public function inputMethod($class, $id)
     {
+        /*
         $text = new TextField();
         $text->label = "(Long) Text field";
         $text->name = "text_field";
@@ -89,5 +83,6 @@ class AppController extends Controller
         Response::$context['key'] = $key;
         
         Response::renderTemplate('appname', 'input_test.php');
+        */
     }
 }

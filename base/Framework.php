@@ -3,6 +3,7 @@
 
 class Framework
 {
+    public static $apps = array();
     public static $routes = array();
     public static $types = array();
     public static $controllers = array();
@@ -11,11 +12,39 @@ class Framework
 
 class Route
 {
-    public function __construct($array)
+    public function __construct()
     {
-        if (is_array($array))
+        $app = false;
+        
+        $args = func_get_args();
+        
+        if (count($args) == 1)
         {
-            foreach ($array as $url => $method)
+            $routes = $args[0];
+        }
+        else if (count($args) == 2)
+        {
+            $app = $args[0];
+            $routes = $args[1];
+        }
+        else
+        {
+            trigger_error("Routes require 1 or 2 arguments", E_USER_WARNING);
+            return false;
+        }
+        
+        if ($app)
+        {
+            Framework::$routes[$app] = array();
+        }
+        
+        foreach ($routes as $url => $method)
+        {
+            if ($app)
+            {
+                Framework::$routes[$app][$url] = $method;
+            }
+            else
             {
                 Framework::$routes[$url] = $method;
             }
@@ -26,13 +55,17 @@ class Route
 
 interface Type
 {
+    public function __construct($source, $name, $args);
+    
     public function sql();
-    
-    public function __construct($source, $args);
-    
     public function &get();
-    public function set($value);
     
+    public function set($value);
+}
+
+
+interface LiteralType extends Type
+{
     public function validate();
     public function databaseValue();
     public function displaySafe();
@@ -42,15 +75,8 @@ interface Type
 }
 
 
-interface SingleRelationType
+interface SingleRelationType extends Type
 {
-    public function sql();
-    
-    public function __construct($source, $args);
-    
-    public function &get();
-    public function set($value);
-    
     public function validate();
     public function databaseValue();
     public function displaySafe();
@@ -60,15 +86,8 @@ interface SingleRelationType
 }
 
 
-interface MultipleRelationType
+interface MultipleRelationType extends Type
 {
-    public function sql();
-    
-    public function __construct($source, $args);
-    
-    public function &get();
-    public function set($value);
-    
     public function save();
     public function displaySafe();
     public function displayRaw();

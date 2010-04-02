@@ -60,11 +60,18 @@ require_once('base/Framework.php');
 require_once('base/Request.php');
 require_once('base/Response.php');
 
+if (is_file('routes.php'))
+{
+    require_once('routes.php');
+}
+
 $builtin_apps = array(
     'db_types',
     );
 
 $apps = array_merge($builtin_apps, $apps);
+
+Framework::$apps = $apps;
 
 foreach ($loadables as $filename)
 {

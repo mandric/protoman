@@ -11,9 +11,20 @@ class CharField implements Type
     protected $length = 256;
     protected $source = false;
     
-    public function __construct($source, $args)
+    public function __construct($source, $name, $args)
     {
         $this->source = $source;
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('default', 'null', 'length') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
     }
     
     public function sql()
@@ -83,6 +94,104 @@ class CharField implements Type
 }
 
 
+class IntegerField implements Type
+{
+    protected $label = '';
+    protected $name = '';
+    protected $default = '';
+    protected $value = '';
+    protected $null = false;
+    protected $unsigned = false;
+    protected $length = 12;
+    protected $source = false;
+    
+    public function __construct($source, $name, $args)
+    {
+        $this->source = $source;
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('default', 'null', 'length') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
+    }
+    
+    public function sql()
+    {
+        $create = array();
+        $create[] = "`{$this->name}` int({$this->length})";
+        
+        if ($this->unsigned)
+        {
+            $create[] = "unsigned";
+        }
+        
+        if ($this->null)
+        {
+            $create[] = "not";
+        }
+        
+        $create[] = "null";
+        
+        if ($this->default)
+        {
+            $create[] = "default {$this->default}";
+        }
+        
+        return implode(' ', $create);
+    }
+    
+    public function &get()
+    {
+        return $this->value;
+    }
+    
+    public function set($value)
+    {
+        if ($this->value != $value)
+        {
+            $this->dirty = true;
+        }
+        
+        return ($this->value = $value);
+    }
+    
+    public function validate()
+    {
+        return is_int($this->value);
+    }
+    
+    public function databaseValue()
+    {
+        return $this->value;
+    }
+    
+    public function displaySafe()
+    {
+        return $this->value;
+    }
+    
+    public function displayRaw()
+    {
+        return $this->value;
+    }
+    
+    public function formField()
+    {
+        Response::$context['field_type'] = 'text';
+        Response::$context['field_name'] = $this->name;
+        Response::$context['field_label'] = $this->label;
+        Response::$context['field_value'] = $this->displaySafe();
+        return Response::renderTemplate('db_types', 'input_type.php');
+    }
+}
+
+
 class TextField implements Type
 {
     protected $label = '';
@@ -92,9 +201,20 @@ class TextField implements Type
     protected $null = false;
     protected $source = false;
     
-    public function __construct($source, $args)
+    public function __construct($source, $name, $args)
     {
         $this->source = $source;
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('default', 'null', 'length') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
     }
     
     public function sql()
@@ -179,14 +299,22 @@ class ForeignKeyField implements SingleRelationType
     protected $label = '';
     protected $name = '';
     protected $class = '';
-    protected $default = 0;
     protected $value = false;
     protected $null = false;
     protected $source = false;
     
-    public function __construct($source, $args)
+    public function __construct($source, $name, $args)
     {
         $this->source = $source;
+        $this->class = $args[0];
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        if ($args['null'])
+        {
+            $this->null = $args['null'];
+        }
     }
     
     public function sql()
@@ -264,12 +392,13 @@ class ManyToManyField implements MultipleRelationType
     protected $values = false;
     protected $source = false;
     
-    public function __construct($source, $args)
+    public function __construct($source, $name, $args)
     {
-        $class = $args[0];
-        
         $this->source = $source;
-        $this->class = strtolower($class);
+        $this->class = strtolower($args[0]);
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
     }
     
     public function sql()
@@ -428,9 +557,16 @@ class ManyToManyField implements MultipleRelationType
         
         Response::$context['field_name'] = $this->name;
         Response::$context['field_label'] = $this->label;
-        Response::$context['field_value'] = ($this->value && $this->value->id) ? $this->value->id : $this->default ;
         Response::$context['field_options'] = $objs;
-        return Response::renderTemplate('db_types', 'foreign_key.php');
+        
+        Response::$context['field_value_ids'] = array();
+        
+        foreach ($this->values as $key => $value)
+        {
+            Response::$context['field_value_ids'][] = $value->id;
+        }
+        
+        return Response::renderTemplate('db_types', 'many_to_many.php');
     }
 }
 
