@@ -3,13 +3,11 @@
 
 class Thing extends Saveable
 {
-    protected $plural_name = 'thingies';
-    
-    protected $users = array();
+    protected $users = array('ManyToManyField', 'User');
 }
 
 
 class Stuff extends Saveable
 {
-    protected $thing = 0;
+    protected $thing = array('ForeignKeyField', 'Thing');
 }

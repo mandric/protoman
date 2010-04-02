@@ -109,23 +109,26 @@ foreach ($declared as $classname)
         continue;
     }
     
-    $obj = new $classname(false, false);
-    
-    if (is_subclass_of($obj, 'Saveable'))
+    if (is_subclass_of($classname, 'Saveable'))
     {
-        Saveable::$subclasses[$obj->plural_name] = $obj->type;
+        Saveable::$subclasses[] = $obj->type;
     }
-    else if (is_a($obj, 'Type'))
-    {
-        Framework::$types[] = $classname;
-    }
-    else if (is_subclass_of($obj, 'Controller'))
+    else if (is_subclass_of($classname, 'Controller'))
     {
         Framework::$controllers[$classname] = array();
         
         foreach (get_class_methods($classname) as $method)
         {
             Framework::$controllers[$classname][] = strtolower($method);
+        }
+    }
+    else
+    {
+        $reflector = new ReflectionClass($classname);
+        
+        if ($reflector->implementsInterface('Type'))
+        {
+            Framework::$types[] = $classname;
         }
     }
 }

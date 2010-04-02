@@ -26,28 +26,52 @@ class Route
 
 interface Type
 {
+    public function sql();
+    
+    public function __construct($source, $args);
+    
+    public function &get();
+    public function set($value);
+    
     public function validate();
-    public function columnSql();
     public function databaseValue();
     public function displaySafe();
     public function displayRaw();
-    public function form();
+    
+    public function formField();
 }
 
 
 interface SingleRelationType
 {
+    public function sql();
+    
+    public function __construct($source, $args);
+    
+    public function &get();
+    public function set($value);
+    
     public function validate();
-    public function columnSql();
     public function databaseValue();
-    public function form();
+    public function displaySafe();
+    public function displayRaw();
+    
+    public function formField();
 }
 
 
 interface MultipleRelationType
 {
-    public function validate();
-    public function tableSql();
-    public function databaseValue();
-    public function form();
+    public function sql();
+    
+    public function __construct($source, $args);
+    
+    public function &get();
+    public function set($value);
+    
+    public function save();
+    public function displaySafe();
+    public function displayRaw();
+    
+    public function formField();
 }

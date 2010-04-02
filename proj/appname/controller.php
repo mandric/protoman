@@ -3,9 +3,35 @@
 
 class AppController extends Controller
 {
-    public function noargsConMethod()
+    public function testOrm()
     {
-        echo "In test controller.<br />No args.<br />";
+        $t = new Thing(1);
+        echo "<pre>";
+        print_r($t->users);
+        /*
+        $u1 = new User();
+        $u1->save();
+        $u1->first_name = 'Bob';
+        $u1->save();
+
+        $u2 = new User();
+        $u2->first_name = 'James';
+        $u2->save();
+
+        $t1 = new Thing();
+        $t1->save();
+
+        $s1 = new Stuff();
+        $s1->thing = $t1;
+        $s1->save();
+        
+        $t1->users[] = $u2;
+        $t1->users[] = $u1;
+        
+        echo "<pre>";
+        print_r($s1);
+        echo "</pre>";
+        */
     }
     
     public function testConMethod($id)
