@@ -55,6 +55,7 @@ $loadables = array(
 
 // The order here is important!  Changing it could break loading.
 require_once('db/Saveable.php');
+require_once('base/Cache.php');
 require_once('base/Controller.php');
 require_once('base/Framework.php');
 require_once('base/Request.php');

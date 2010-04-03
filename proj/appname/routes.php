@@ -10,6 +10,6 @@ $login_required = array('AuthController', 'loginRequired');
 
 new Route('appname', array(
     '/test/orm/' => array($test_orm),
-    '/test/path/(?P<id>\d+)' => array($testcon),
+    '/test/creation' => array($testcon),
     '/test/path/(?P<id>\d+)/(?P<slug>\w+)' => array($word),
     ));

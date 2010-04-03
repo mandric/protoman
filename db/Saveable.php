@@ -4,11 +4,12 @@
 
 abstract class Saveable
 {
-    protected $id = 0;
+    protected $id = array('IntegerField', 'auto_increment' => true, 'hidden' => true);
     
     protected $type = '';
     protected $dirty = true;
     protected $is_saveable = true;
+    protected $cache_index = false;
     
     public static $subclasses = array();
     
@@ -16,17 +17,10 @@ abstract class Saveable
     private static $singlerels = array();
     private static $manyrels = array();
     
-    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'subclasses', 'singlerels', 'manyrels', 'is_saveable');
-    private static $memcache = false;
+    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'subclasses', 'singlerels', 'manyrels', 'is_saveable', 'cache_index');
     
     public function __construct($values = array())
     {
-        if (MC_ENABLED)
-        {
-            global $memcache;
-            Saveable::$memcache = $memcache;
-        }
-        
         $this->type = strtolower(get_class($this));
         /*
         if ($build_list && !count(Saveable::$subclasses))
@@ -64,6 +58,29 @@ abstract class Saveable
         }
         */
         
+        $ovars = get_object_vars($this);
+        
+        foreach (get_class_vars($this->type) as $key => $value)
+        {
+            if (!in_array($key, $this->ignore))
+            {
+                if (is_array($value))
+                {
+                    $value_type = $value[0];
+                    $this->$key = new $value_type($this, $key, array_slice($value, 1));
+                    
+                    if ( $ovars[$key] && ($ovars[$key] != $value) )
+                    {
+                        $this->$key = $ovars[$key];
+                    }
+                }
+                else
+                {
+                    $this->$key = $value;
+                }
+            }
+        }
+        
         if (is_array($values))
         {
             foreach ($values as $key => $value)
@@ -86,54 +103,32 @@ abstract class Saveable
         {
             $this->dirty = false;
         }
-        
-        foreach (get_object_vars($this) as $key => $value)
-        {
-            if (!in_array($key, $this->ignore))
-            {
-                if (is_array($value))
-                {
-                    $value_type = $value[0];
-                    $this->$key = new $value_type($this, $key, array_slice($value, 1));
-                }
-                else
-                {
-                    $this->$key = $value;
-                }
-            }
-        }
     }
     
     public function load($id = false)
     {
-        $id = mysql_escape_string(trim( ($id) ? $id : $this->id ));
+        $id = mysql_escape_string(trim( ($id) ? $id : $this->id->get() ));
         
         if ($id)
         {
-            if (MC_ENABLED)
-            {
-                $cached = Saveable::$memcache->get($this->type . $id);
-                
-                if ($cached)
-                {
-                    $values = get_object_vars($cached);
-                    
-                    foreach ($values as $key => $value)
-                    {
-                        $this->$key = $value;
-                    }
-                    
-                    return true;
-                }
-            }
+            $this->cache_index = $this->type . $id;
             
-            if (isset(self::$instances[$this->type][$id]) && is_a(self::$instances[$this->type][$id], $this->type))
+            $cached = Cache::get($this->cache_index);
+            
+            if ($cached)
             {
-                $values = get_object_vars(self::$instances[$this->type][$id]);
+                $values = get_object_vars($cached);
                 
                 foreach ($values as $key => $value)
                 {
-                    $this->$key = $value;
+                    if (is_object($this->$key) && is_a($this->$key, 'Type'))
+                    {
+                        $this->$key->set($value);
+                    }
+                    else
+                    {
+                        $this->$key = $value;
+                    }
                 }
                 
                 return true;
@@ -158,7 +153,7 @@ abstract class Saveable
                 
                 $this->dirty = false;
                 
-                $this->cache();
+                Cache::set($this->cache_index, $this);
                 
                 return true;
             }
@@ -239,7 +234,7 @@ abstract class Saveable
         sort($tables, SORT_STRING);
         $join_table = implode('_', $tables);
         
-        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '{$this->id}'";
+        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "'";
         
         if (!mysql_query($delete) && DEBUG)
         {
@@ -255,7 +250,7 @@ abstract class Saveable
         sort($tables, SORT_STRING);
         $join_table = implode('_', $tables);
         
-        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '{$this->id}' and `{$object->type}_id` = '{$object->id}'";
+        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "' and `{$object->type}_id` = '{$object->id}'";
         
         if (!mysql_query($delete) && DEBUG)
         {
@@ -272,28 +267,28 @@ abstract class Saveable
                 }
             }
             
-            $this->cache();
+            Cache::set($this->cache_index, $this);
         }
         
         if (isset($object->$name))
         {
             foreach ($object->$name as $key => $obj)
             {
-                if ($obj->id == $this->id)
+                if ($obj->id == $this->id->get())
                 {
                     unset($object->$name[$key]);
                 }
             }
             
-            $this->cache();
+            Cache::set($this->cache_index, $this);
         }
     }
     
     public function save()
     {
-        if (!$this->dirty) // && $this->id)
+        if (!$this->dirty)
         {
-            return $this->id;
+            return $this->id->get();
         }
         
         $values = get_object_vars($this);
@@ -304,8 +299,8 @@ abstract class Saveable
         }
         
         $joins = array();
-        $dbkeys = array('id');
-        $dbvals = array($this->id);
+        $dbkeys = array();
+        $dbvals = array();
         
         foreach ($values as $key => $value)
         {
@@ -314,7 +309,7 @@ abstract class Saveable
                 if (!$value->validate())
                 {
                     // TODO: Throw exception on validation failure?
-                    trigger_error("Validation exception on field {$key}, class {$class}", E_USER_WARNING);
+                    trigger_error("Validation exception on field {$key}, class {$this->type}", E_USER_WARNING);
                 }
             }
             
@@ -336,24 +331,26 @@ abstract class Saveable
         
         if (mysql_query($replace))
         {
-            if (!$this->id)
+            if (!$this->id->get())
             {
-                $this->id = mysql_insert_id();
+                $this->id->set(mysql_insert_id());
                 
-                if (!$this->id && DEBUG)
+                if (!$this->id->get() && DEBUG)
                 {
                     throw new Exception("Failed to populate id!");
                 }
             }
             
-            $this->cache();
+            $this->cache_index = $this->type . $this->id->get();
             
-            return $this->id;
+            Cache::set($this->cache_index, $this);
+            
+            return $this->id->get();
         }
         
         if (DEBUG)
         {
-            throw new Exception("Saving failed on object of type {$this->type} with id {$this->id}: " . mysql_error());
+            throw new Exception("Saving failed on object of type {$this->type} with id " . $this->id->get() . ": " . mysql_error());
         }
         else
         {
@@ -361,27 +358,9 @@ abstract class Saveable
         }
     }
     
-    private function cache()
-    {
-        if (MC_ENABLED)
-        {
-            if (Saveable::$memcache->set($this->type . $this->id, $this, false, 30))
-            {
-                return true;
-            }
-        }
-        
-        if (self::$instances[$this->type][$this->id] = $this)
-        {
-            return true;
-        }
-        
-        return false;
-    }
-    
     public function delete()
     {
-        $id = mysql_real_escape_string($this->id);
+        $id = mysql_real_escape_string($this->id->get());
         $delete = "delete from `{$this->type}` where id='$id'";
         
         if (mysql_query($delete))
@@ -413,13 +392,13 @@ abstract class Saveable
                     sort($tables, SORT_STRING);
                     $join_table = implode('_', $tables);
                     
-                    $delete = "delete from `{$join_table}` where `{$this->type}_id`='{$this->id}'";
+                    $delete = "delete from `{$join_table}` where `{$this->type}_id`='" . $this->id->get() . "'";
                     mysql_query($delete);
                 }
                 catch (Exception $e)
                 {
                     // May fail for various reasons; this could use actual testing.
-                    trigger_error("Assoc deletion failed on {$this->type} id {$this->id}: " . $e->getMessage(), E_USER_WARNING);
+                    trigger_error("Assoc deletion failed on {$this->type} id " . $this->id->get() . ": " . $e->getMessage(), E_USER_WARNING);
                 }
             }
             
@@ -427,24 +406,24 @@ abstract class Saveable
             {
                 foreach (Saveable::$singlerels[$this->type] as $target_type)
                 {
-                    $update = "update `{$target_type}` set `{$this->type}`=0 where `{$this->type}`='{$this->id}'";
+                    $update = "update `{$target_type}` set `{$this->type}`=0 where `{$this->type}`='" . $this->id->get() . "'";
                     mysql_query($update);
                 }
             }
             
             if (!MC_ENABLED || !Saveable::$memcache->set($this->type . $this->id, $this, false, 30))
             {
-                unset(self::$instances[$this->type][$this->id]);
+                unset(self::$instances[$this->type][$this->id->get()]);
             }
             
-            $this->id = 0;
+            $this->id->set(0);
             
             return true;
         }
         
         if (DEBUG)
         {
-            throw new Exception("Bad call to delete for object of type {$this->type} with id {$this->id}: " . mysql_error());
+            throw new Exception("Bad call to delete for object of type {$this->type} with id " . $this->id->get() . ": " . mysql_error());
         }
         else
         {

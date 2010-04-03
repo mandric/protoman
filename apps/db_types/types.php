@@ -8,6 +8,7 @@ class CharField implements Type
     protected $default = '';
     protected $value = '';
     protected $null = false;
+    public $hidden = false;
     protected $length = 256;
     protected $source = false;
     
@@ -18,7 +19,7 @@ class CharField implements Type
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -94,13 +95,69 @@ class CharField implements Type
 }
 
 
+class PasswordField extends CharField
+{
+    public function &get()
+    {
+        return $this->value;
+    }
+    
+    public function set($value)
+    {
+        if (strlen($value))
+        {
+            $hash = md5($this->value);
+            
+            if ($hash != $this->value)
+            {
+                $this->dirty = true;
+            }
+            
+            return ($this->value = $hash);
+        }
+        
+        return false;
+    }
+    
+    public function validate()
+    {
+        return (is_string($this->value));
+    }
+    
+    public function databaseValue()
+    {
+        return "'" . mysql_real_escape_string($this->value) . "'";
+    }
+    
+    public function displaySafe()
+    {
+        return htmlentities($this->value, ENT_QUOTES);
+    }
+    
+    public function displayRaw()
+    {
+        return $this->value;
+    }
+    
+    public function formField()
+    {
+        Response::$context['field_type'] = 'password';
+        Response::$context['field_name'] = $this->name;
+        Response::$context['field_label'] = $this->label;
+        Response::$context['field_value'] = '';
+        return Response::renderTemplate('db_types', 'input_type.php');
+    }
+}
+
+
 class IntegerField implements Type
 {
     protected $label = '';
     protected $name = '';
     protected $default = '';
-    protected $value = '';
+    protected $value = 0;
     protected $null = false;
+    public $hidden = false;
     protected $unsigned = false;
     protected $length = 12;
     protected $source = false;
@@ -112,7 +169,7 @@ class IntegerField implements Type
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -199,6 +256,7 @@ class TextField implements Type
     protected $default = '';
     protected $value = '';
     protected $null = false;
+    public $hidden = false;
     protected $source = false;
     
     public function __construct($source, $name, $args)
@@ -208,7 +266,7 @@ class TextField implements Type
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -301,6 +359,7 @@ class ForeignKeyField implements SingleRelationType
     protected $class = '';
     protected $value = false;
     protected $null = false;
+    public $hidden = false;
     protected $source = false;
     
     public function __construct($source, $name, $args)
@@ -311,9 +370,12 @@ class ForeignKeyField implements SingleRelationType
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        if ($args['null'])
+        foreach (array('null', 'hidden') as $var)
         {
-            $this->null = $args['null'];
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
         }
     }
     
@@ -389,6 +451,7 @@ class ManyToManyField implements MultipleRelationType
     protected $label = '';
     protected $name = '';
     protected $class = '';
+    public $hidden = false;
     protected $values = false;
     protected $source = false;
     
@@ -399,6 +462,14 @@ class ManyToManyField implements MultipleRelationType
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('hidden') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
     }
     
     public function sql()

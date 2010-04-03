@@ -27,9 +27,43 @@ class AppController extends Controller
         $t1->delete();
     }
     
-    public function testConMethod($id)
+    public function testConMethod()
     {
-        echo "In test controller.<br />Include a template or something here.<br />Passed ID: $id<br />";
+        for ($i=0; $i<100; $i++)
+        {
+            $thing = new Thing($i);
+            $form = new Form($thing);
+            $form->render();
+        }
+        /*
+        $users = array();
+        
+        for ($i=0; $i<100; $i++)
+        {
+            $user = new User();
+            $user->first_name = 'abc';
+            $user->last_name = 'xyz';
+            $user->username = 'axyz';
+            $user->password = 'thisisyourpass';
+            $user->save();
+            $users[] = $user;
+        }
+        
+        $things = array();
+        
+        for ($i=0; $i<100; $i++)
+        {
+            $thing = new Thing();
+            $thing->save();
+            
+            for ($j=0; $j<100; $j++)
+            {
+                $thing->users[] = $users[$j];
+            }
+            
+            $things[] = $thing;
+        }
+        */
     }
     
     public function wordMethod($id, $slug)

@@ -10,9 +10,24 @@ class Form
         $this->obj = $obj;
     }
     
-    public function render()
+    public function getFormFields()
     {
         $fields = Saveable::getFields($this->obj);
+        
+        foreach ($fields as $key => $field)
+        {
+            if ($field->hidden)
+            {
+                unset($fields[$key]);
+            }
+        }
+        
+        return $fields;
+    }
+    
+    public function render()
+    {
+        $fields = $this->getFormFields();
         
         Response::$context['form_object'] = $this->obj;
         Response::$context['form_fields'] = $fields;

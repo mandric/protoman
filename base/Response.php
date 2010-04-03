@@ -100,7 +100,7 @@ class Response
             if (is_file($path))
             {
                 ob_start();
-                require_once($path);
+                require($path);
                 $content = ob_get_contents();
                 ob_end_clean();
                 

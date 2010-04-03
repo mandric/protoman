@@ -3,9 +3,9 @@
 
 class User extends Saveable
 {
-    protected $first_name = array('CharField');
-    protected $last_name = array('CharField');
+    protected $first_name = array('CharField', 'label' => 'First name');
+    protected $last_name = array('CharField', 'label' => 'Last name');
     
-    protected $username = array('CharField');
-    protected $password_hash = array('CharField');
+    protected $username = array('CharField', 'label' => 'Username');
+    protected $password = array('PasswordField', 'label' => 'Password');
 }
