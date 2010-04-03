@@ -8,6 +8,10 @@ X    Implied autoincrement ID's
 X    Foreign key handling
 X    One-to-many handling
 X    Object caching
+
+
+DB layer
+    Generic CRUD methods
     Query caching
 
 Apps
@@ -15,18 +19,18 @@ X    controller.php - Single class with methods to be called from routes.php
 X    routes.php - Define URL routing
 X    classes.php - Define classes
 X    templates/ - App-specific template blocks
-    types.php - Define types with validation?
-        Implement framework-defined Type interface with validation methods and form input type?
-        Populate a Type class var with subclasses to use as types?
-            Auto-instantiate in constructor?
-            Optional array of types to override class defaults?
-                Override with predefined method in ORM to avoid required constructor overload?
+
+Types
+X    Implement framework-defined Type interface with validation methods and form input type?
+X    Populate a Type class var with subclasses to use as types?
+X        Auto-instantiate in constructor?
+    Optional array of types to override class defaults?
+        Override with predefined method in ORM to avoid required constructor overload?
 
 URL's
 X    Dynamic URL routing by module name and view functions
 X    Completely custom URL routing, programmer-defined
-    Default slug field?
-    Default URL routing based on plural name and slug field value or id?
+    Use 'reverse' concept from Django
 
 Admin
     Generic listing and editing based on type

@@ -1,76 +1,13 @@
 <?php
 
 
-class ArrayProcessor extends ArrayObject
-{
-    private $obj;
-    
-    public function __construct($arr, $obj)
-    {
-        $this->obj = $obj;
-        
-        parent::__construct(array());
-        
-        foreach ($arr as $key => $value)
-        {
-            $this->offsetSet($key, $value, false);
-        }
-    }
-    
-    public function append($value)
-    {
-        if ( is_object($value) && $value->is_saveable )
-        {
-            return $this->obj->associate($value);
-        }
-        
-        return parent::append($value);
-    }
-    
-    public function offsetSet($offset, $value, $overwrite=true)
-    {
-        if ( is_object($value) && $value->is_saveable )
-        {
-            if (is_numeric($offset))
-            {
-                $warning = "Assignment by offset is not supported for object types.";
-                
-                if ($overwrite)
-                {
-                    $warning .= " Removing specified index and appending passed object.";
-                    
-                    $this->offsetUnset($offset);
-                }
-                
-                trigger_error($warning, E_USER_WARNING);
-            }
-            
-            $this->obj->associate($value);
-        }
-        
-        return parent::offsetSet($offset, $value);
-    }
-    
-    public function offsetUnset($offset)
-    {
-        if ( is_object($this[$offset]) && $this[$offset]->is_saveable )
-        {
-            return $this->obj->dissociate($this->offsetGet($offset));
-        }
-        
-        return parent::offsetUnset($offset);
-    }
-}
-
 
 abstract class Saveable
 {
     protected $id = 0;
     
     protected $type = '';
-    protected $plural_name = '';
     protected $dirty = true;
-    protected $loaded = false;
     protected $is_saveable = true;
     
     public static $subclasses = array();
@@ -79,10 +16,10 @@ abstract class Saveable
     private static $singlerels = array();
     private static $manyrels = array();
     
-    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'subclasses', 'singlerels', 'manyrels', 'loaded', 'plural_name', 'is_saveable');
+    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'subclasses', 'singlerels', 'manyrels', 'is_saveable');
     private static $memcache = false;
     
-    public function __construct($values = array(), $build_list=true)
+    public function __construct($values = array())
     {
         if (MC_ENABLED)
         {
@@ -91,12 +28,7 @@ abstract class Saveable
         }
         
         $this->type = strtolower(get_class($this));
-        
-        if (!$this->plural_name)
-        {
-            $this->plural_name = $this->type . 's';
-        }
-        
+        /*
         if ($build_list && !count(Saveable::$subclasses))
         {
             $plural_names = array_keys(Saveable::$subclasses);
@@ -130,21 +62,20 @@ abstract class Saveable
                 }
             }
         }
-        
-        foreach (get_object_vars($this) as $key => $value)
-        {
-            if (is_array($value) && !in_array($key, $this->ignore))
-            {
-                $this->$key = new ArrayProcessor($value, $this);
-            }
-        }
+        */
         
         if (is_array($values))
         {
             foreach ($values as $key => $value)
             {
-                // $key = $value within the class will bypass __set
-                $this->__set($key, $value);
+                if (is_object($this->$key))
+                {
+                    $this->$key->set($value);
+                }
+                else
+                {
+                    $this->$key = $value;
+                }
             }
         }
         else if ( is_numeric($values) && ($values > 0) )
@@ -154,6 +85,22 @@ abstract class Saveable
         else
         {
             $this->dirty = false;
+        }
+        
+        foreach (get_object_vars($this) as $key => $value)
+        {
+            if (!in_array($key, $this->ignore))
+            {
+                if (is_array($value))
+                {
+                    $value_type = $value[0];
+                    $this->$key = new $value_type($this, $key, array_slice($value, 1));
+                }
+                else
+                {
+                    $this->$key = $value;
+                }
+            }
         }
     }
     
@@ -199,8 +146,14 @@ abstract class Saveable
             {
                 foreach ($values as $key => $value)
                 {
-                    // $key = $value within the class will bypass __set
-                    $this->__set($key, $value);
+                    if (is_object($this->$key))
+                    {
+                        $this->$key->set($value);
+                    }
+                    else
+                    {
+                        $this->$key = $value;
+                    }
                 }
                 
                 $this->dirty = false;
@@ -236,13 +189,11 @@ abstract class Saveable
                 continue;
             }
             
-            if (is_a($value, 'ArrayProcessor'))
+            if (is_a($value, 'MultipleRelationType'))
             {
-                $this->$key = $this->getJoined(Saveable::$subclasses[$key]);
+                $this->$key = $value->retrieve();
             }
         }
-        
-        $this->loaded = true;
         
         return true;
     }
@@ -257,56 +208,21 @@ abstract class Saveable
         return true;
     }
     
-    private function getJoined($type)
+    public static function getFields($obj)
     {
-        $return = new ArrayProcessor(array(), $this);
+        $fields = array();
         
-        $types = array($this->type, $type);
-        sort($types, SORT_STRING);
-        $join_table = implode('_', $types);
+        $vars = get_object_vars($obj);
         
-        $self_column = $this->getColumn();
-        $object_column = $type . '_id';
-        
-        $joins = "
-            select distinct t.id from `{$type}` t
-            join `{$join_table}` j on j.`{$object_column}` = t.`id`
-            where j.`{$this->type}_id` = '{$this->id}' 
-            order by t.id asc
-            ";
-        
-        $joins = mysql_query($joins);
-        
-        if ($joins && mysql_numrows($joins))
+        foreach ($vars as $key => $var)
         {
-            while ($record = mysql_fetch_assoc($joins))
+            if (is_object($var) && is_a($var, 'Type'))
             {
-                // Built from record but didn't load children; used t.* in query:
-            //    array_push($return, new $type($record));
-                $record = new $type($record['id']);
-                
-                if ($record->id)
-                {
-                    array_push($return, $record);
-                }
+                $fields[$key] = $var;
             }
         }
         
-        return $return;
-    }
-    
-    private function getTypeFromColumn($column)
-    {
-        $type = str_replace('_id', '', trim($column));
-        $type = str_replace('_', ' ', $type);
-        $type = str_replace(' ', '', ucwords($type));
-        
-        return $type;
-    }
-    
-    private function getColumn()
-    {
-        return ($this->type) ? $this->type : $this->type . 's';
+        return $fields;
     }
     
     public function unjoin($type)
@@ -331,43 +247,6 @@ abstract class Saveable
         }
     }
     
-    public function associate($object)
-    {
-        if (!$this->id)
-        {
-            trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
-            $this->save();
-        }
-        
-        $name = $object->type;
-        
-        $tables = array($this->type, $object->type);
-        sort($tables, SORT_STRING);
-        $join_table = implode('_', $tables);
-        
-        $pairs = "`{$this->type}_id` = '{$this->id}', `{$object->type}_id` = '{$object->id}'";
-        $replace = "replace into `{$join_table}` set {$pairs}";
-        
-        if (!mysql_query($replace) && DEBUG)
-        {
-            throw new Exception("Failed to save relation with query {$replace}");
-        }
-        
-        if ($this->loaded && isset($this->$name))
-        {
-            $this->$name->append($object);
-            
-            $this->cache();
-        }
-        
-        if ($object->loaded && isset($object->$name))
-        {
-            $object->$name->append($object);
-            
-            $this->cache();
-        }
-    }
-    
     public function dissociate($object)
     {
         $name = $object->type;
@@ -383,7 +262,7 @@ abstract class Saveable
             throw new Exception("Failed to delete relation with query {$delete}");
         }
         
-        if ($this->loaded && isset($this->$name))
+        if (isset($this->$name))
         {
             foreach ($this->$name as $key => $obj)
             {
@@ -396,7 +275,7 @@ abstract class Saveable
             $this->cache();
         }
         
-        if ($object->loaded && isset($object->$name))
+        if (isset($object->$name))
         {
             foreach ($object->$name as $key => $obj)
             {
@@ -425,40 +304,35 @@ abstract class Saveable
         }
         
         $joins = array();
-        $pairs = array();
+        $dbkeys = array('id');
+        $dbvals = array($this->id);
         
         foreach ($values as $key => $value)
         {
-            // If the value is an array, update it as a *-to-many join
-            if (is_array($value))
+            if (method_exists($value, 'validate'))
             {
-                $joins[] = $value;
+                if (!$value->validate())
+                {
+                    // TODO: Throw exception on validation failure?
+                    trigger_error("Validation exception on field {$key}, class {$class}", E_USER_WARNING);
+                }
             }
-            else
+            
+            if (method_exists($value, 'save'))
             {
-                $key = mysql_real_escape_string($key);
-                
-                // If this is a flag, change it to 1 or 0
-                if (is_bool($value))
-                {
-                    $value = ($value) ? 1 : 0 ;
-                }
-                else if (is_object($value))
-                {
-                    continue;
-                }
-                else
-                {
-                    $value = mysql_real_escape_string($value);
-                }
-                
-                $pairs[] = "`{$key}` = '{$value}'";
+                $value->save();
+            }
+            else if (method_exists($value, 'databaseValue'))
+            {
+                $dbkeys[] = "`{$key}`";
+                $dbvals[] = $value->databaseValue();
             }
         }
         
-        $pairs = implode(', ', $pairs);
+        $dbkeys = implode(',', $dbkeys);
+        $dbvals = implode(',', $dbvals);
         
-        $replace = "replace into `{$this->type}` set {$pairs}";
+        $replace = "replace into `{$this->type}` ({$dbkeys}) values ({$dbvals})";
         
         if (mysql_query($replace))
         {
@@ -469,66 +343,6 @@ abstract class Saveable
                 if (!$this->id && DEBUG)
                 {
                     throw new Exception("Failed to populate id!");
-                }
-            }
-            
-            if ($this->loaded)
-            {
-                foreach ($values as $key => $value)
-                {
-                    if (is_object($value))
-                    {
-                        if ($value->dirty) // || !$value->id)
-                        {
-                            $value->save();
-                        }
-                        
-                        $key .= '_id';
-                        $this->$key = $value->id;
-                    }
-                }
-                
-                foreach ($joins as $join)
-                {
-                    $ids = array();
-                    $table = '';
-                    
-                    foreach ($join as $key => $object)
-                    {
-                        if (is_object($object))
-                        {
-                            if ($object->dirty) // || !$object->id)
-                            {
-                                $object->save();
-                            }
-                            
-                            $this->associate($object);
-                            
-                            $ids[] = $object->id;
-                            $table = $object->type;
-                        }
-                        else if (DEBUG)
-                        {
-                            throw new Exception(
-                                "Tried to save a relation without an object from member {$key} in object of type {$this->type} with id {$this->id}."
-                                );
-                        }
-                    }
-                    
-                    if ($table)
-                    {
-                        $tables = array($this->type, $object->type);
-                        sort($tables, SORT_STRING);
-                        $join_table = implode('_', $tables);
-                        
-                        $ids = "'" . implode("', '", $ids) . "'";
-                        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '{$this->id}' and `{$table}_id` not in ({$ids})";
-                        
-                        if (!mysql_query($delete) && DEBUG)
-                        {
-                            throw new Exception("Failed to delete relation with query {$delete}");
-                        }
-                    }
                 }
             }
             
@@ -567,11 +381,6 @@ abstract class Saveable
     
     public function delete()
     {
-        if (!$this->loaded)
-        {
-            $this->loadForeign();
-        }
-        
         $id = mysql_real_escape_string($this->id);
         $delete = "delete from `{$this->type}` where id='$id'";
         
@@ -645,20 +454,15 @@ abstract class Saveable
     
     public function &__get($name)
     {
-        if ( !$this->loaded && in_array($name, array_merge(Saveable::$subclasses, array_keys(Saveable::$subclasses))) )
-        {
-            $this->loadForeign();
-        }
-        
         // In debug mode, assert that get calls only work on existing member variables
         if (!isset($this->$name) && DEBUG)
         {
             throw new Exception("Attempted to access bad property {$name} on object of type {$this->type}");
         }
         
-        if (in_array($name, Saveable::$subclasses) && $this->$name)
+        if (!in_array($name, $this->ignore) && is_object($this->$name))
         {
-            return new $name($this->$name);
+            return $this->$name->get();
         }
         
         return $this->$name;
@@ -666,34 +470,13 @@ abstract class Saveable
     
     public function __set($name, $value)
     {
-        if (is_array($value))
-        {
-            $value = new ArrayProcessor($value, $this);
-        }
-        
         if (!isset($this->$name) && DEBUG)
         {
             // In debug mode, assert that set calls only work on existing member variables
             throw new Exception("Attempted to modify bad property {$name} on object of type {$this->type}");
         }
         
-        if ($this->$name != $value)
-        {
-            $this->dirty = true;
-        }
-        
-        if (in_array($name, Saveable::$subclasses))
-        {
-            if (!$value->id)
-            {
-                trigger_error("Attempted to associate unsaved object; saving before association", e_USER_WARNING);
-                $value->save();
-            }
-            
-            $value = $value->id;
-        }
-        
-        return ($this->$name = $value);
+        $this->$name->set($value);
     }
     
     public function getOne($where = array())
