@@ -9,5 +9,5 @@ class Thing extends Saveable
 
 class Stuff extends Saveable
 {
-    protected $thing = array('ForeignKeyField', 'Thing');
+    protected $thing = array('ForeignKeyField', 'Thing', 'label' => 'Thing for your Stuff');
 }

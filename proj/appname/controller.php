@@ -29,7 +29,7 @@ class AppController extends Controller
     
     public function testConMethod()
     {
-        for ($i=0; $i<100; $i++)
+        for ($i=1; $i<10; $i++)
         {
             $thing = new Thing($i);
             $form = new Form($thing);
@@ -46,7 +46,7 @@ class AppController extends Controller
             $user->username = 'axyz';
             $user->password = 'thisisyourpass';
             $user->save();
-            $users[] = $user;
+            $users[$i] = $user;
         }
         
         $things = array();
@@ -56,7 +56,7 @@ class AppController extends Controller
             $thing = new Thing();
             $thing->save();
             
-            for ($j=0; $j<100; $j++)
+            for ($j=0; $j<10; $j++)
             {
                 $thing->users[] = $users[$j];
             }

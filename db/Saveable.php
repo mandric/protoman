@@ -58,6 +58,24 @@ abstract class Saveable
         }
         */
         
+        if (is_array($values))
+        {
+            foreach ($values as $key => $value)
+            {
+                $this->$key = $value;
+            }
+        }
+        else if ( is_numeric($values) && ($values > 0) )
+        {
+            $this->load($values);
+            
+            Cache::set($this->cache_index, $this);
+        }
+        else
+        {
+            $this->dirty = false;
+        }
+        
         $ovars = get_object_vars($this);
         
         foreach (get_class_vars($this->type) as $key => $value)
@@ -71,37 +89,14 @@ abstract class Saveable
                     
                     if ( $ovars[$key] && ($ovars[$key] != $value) )
                     {
-                        $this->$key = $ovars[$key];
+                        $this->$key->set($ovars[$key]);
                     }
                 }
                 else
                 {
-                    $this->$key = $value;
+                    trigger_error("Bad type definition on {$this->type}", E_USER_WARNING);
                 }
             }
-        }
-        
-        if (is_array($values))
-        {
-            foreach ($values as $key => $value)
-            {
-                if (is_object($this->$key))
-                {
-                    $this->$key->set($value);
-                }
-                else
-                {
-                    $this->$key = $value;
-                }
-            }
-        }
-        else if ( is_numeric($values) && ($values > 0) )
-        {
-            $this->load($values);
-        }
-        else
-        {
-            $this->dirty = false;
         }
     }
     
@@ -121,14 +116,7 @@ abstract class Saveable
                 
                 foreach ($values as $key => $value)
                 {
-                    if (is_object($this->$key) && is_a($this->$key, 'Type'))
-                    {
-                        $this->$key->set($value);
-                    }
-                    else
-                    {
-                        $this->$key = $value;
-                    }
+                    $this->$key = $value;
                 }
                 
                 return true;
@@ -141,19 +129,10 @@ abstract class Saveable
             {
                 foreach ($values as $key => $value)
                 {
-                    if (is_object($this->$key))
-                    {
-                        $this->$key->set($value);
-                    }
-                    else
-                    {
-                        $this->$key = $value;
-                    }
+                    $this->$key = $value;
                 }
                 
                 $this->dirty = false;
-                
-                Cache::set($this->cache_index, $this);
                 
                 return true;
             }
@@ -338,6 +317,16 @@ abstract class Saveable
                 if (!$this->id->get() && DEBUG)
                 {
                     throw new Exception("Failed to populate id!");
+                }
+            }
+            
+            $vars = get_object_vars($this);
+            
+            foreach ($vars as $key => $value)
+            {
+                if (is_object($this->$key) && is_a($this->$key, 'Type'))
+                {
+                    $this->$key->source_id = $this->id->get();
                 }
             }
             

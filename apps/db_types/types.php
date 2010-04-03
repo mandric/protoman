@@ -10,11 +10,14 @@ class CharField implements Type
     protected $null = false;
     public $hidden = false;
     protected $length = 256;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_id = $source->id;
+        $this->source_type = $source->type;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
@@ -160,11 +163,14 @@ class IntegerField implements Type
     public $hidden = false;
     protected $unsigned = false;
     protected $length = 12;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_id = $source->id;
+        $this->source_type = $source->type;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
@@ -257,11 +263,14 @@ class TextField implements Type
     protected $value = '';
     protected $null = false;
     public $hidden = false;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
@@ -360,11 +369,14 @@ class ForeignKeyField implements SingleRelationType
     protected $value = false;
     protected $null = false;
     public $hidden = false;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->class = $args[0];
         $this->name = $name;
         
@@ -453,11 +465,14 @@ class ManyToManyField implements MultipleRelationType
     protected $class = '';
     public $hidden = false;
     protected $values = false;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->class = strtolower($args[0]);
         $this->name = $name;
         
@@ -510,18 +525,18 @@ class ManyToManyField implements MultipleRelationType
         // TODO: Implement Cache; use here
         $this->values = new ArrayProcessor(array(), $this);
         
-        $types = array($this->class, $this->source->type);
+        $types = array($this->class, $this->source_type);
         sort($types, SORT_STRING);
         $join_table = implode('_', $types);
         
         $object_column = $this->class . '_id';
-        $self_column = $this->source->type . '_id';
+        $self_column = $this->source_type . '_id';
         
         // TODO: Default ordering?
         $joins = "
             select t.* from `{$this->class}` t
             join `{$join_table}` j on j.`{$object_column}` = t.`id`
-            where j.`{$self_column}` = '{$this->source->id}' 
+            where j.`{$self_column}` = '{$this->source_id}' 
             order by t.id asc
             ";
         
@@ -547,38 +562,28 @@ class ManyToManyField implements MultipleRelationType
     
     public function associate($object)
     {
-        if (!$this->source->id)
+        if (!$this->source_id)
         {
             trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
-            $this->source->save();
+            
+            $source = new $this->source_type($this->source_id);
+            $source->save();
+            
+            $this->source_id = $source->id;
         }
         
         $name = $object->type;
         
-        $tables = array($this->source->type, $object->type);
+        $tables = array($this->source_type, $object->type);
         sort($tables, SORT_STRING);
         $join_table = implode('_', $tables);
         
-        $pairs = "`{$this->source->type}_id` = '{$this->source->id}', `{$object->type}_id` = '{$object->id}'";
+        $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
         $replace = "replace into `{$join_table}` set {$pairs}";
         
         if (!mysql_query($replace) && DEBUG)
         {
             throw new Exception("Failed to save relation with query {$replace}");
-        }
-        
-        if (isset($this->source->$name))
-        {
-            $this->source->$name->append($object);
-            
-            $this->source->cache();
-        }
-        
-        if (isset($object->$name))
-        {
-            $object->$name->append($object);
-            
-            $this->cache();
         }
     }
     
@@ -660,6 +665,7 @@ class ArrayProcessor extends ArrayObject
     
     public function append($value)
     {
+        echo "append...";
         return $this->offsetSet('', $value, true, false);
     }
     
