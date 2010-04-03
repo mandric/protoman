@@ -552,7 +552,7 @@ class ManyToManyField implements MultipleRelationType
                 
                 if ($record->id)
                 {
-                    $this->values[] = $record;
+                    $this->values->append($record);
                 }
             }
         }
@@ -665,8 +665,7 @@ class ArrayProcessor extends ArrayObject
     
     public function append($value)
     {
-        echo "append...";
-        return $this->offsetSet('', $value, true, false);
+        return $this->offsetSet(null, $value, true, false);
     }
     
     public function offsetSet($offset, $value, $overwrite=true, $save=true)

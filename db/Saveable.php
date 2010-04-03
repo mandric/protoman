@@ -116,7 +116,14 @@ abstract class Saveable
                 
                 foreach ($values as $key => $value)
                 {
-                    $this->$key = $value;
+                    if (is_object($value) && is_a($value, 'Type'))
+                    {
+                        $this->$key = $value->get();
+                    }
+                    else
+                    {
+                        $this->$key = $value;
+                    }
                 }
                 
                 return true;

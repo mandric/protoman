@@ -29,7 +29,7 @@ class AppController extends Controller
     
     public function testConMethod()
     {
-        for ($i=1; $i<10; $i++)
+        for ($i=1; $i<9; $i++)
         {
             $thing = new Thing($i);
             $form = new Form($thing);
