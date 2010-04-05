@@ -11,6 +11,9 @@
 
 <?php Response::startBlock('body'); ?>
     
+    <a href="add">add a new <?php print Response::$context['listing_class']; ?></a>
+    <br /><br />
+    
     <?php foreach (Response::$context['listing_objects'] as $obj): ?>
         <a href="<?php echo $obj->id; ?>"><?php echo $obj->id; ?></a>
         <br />

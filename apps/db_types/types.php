@@ -5,7 +5,7 @@ class CharField implements Type
 {
     protected $label = '';
     protected $name = '';
-    protected $default = '';
+    public $default = '';
     protected $value = '';
     protected $null = false;
     public $hidden = false;
@@ -157,7 +157,7 @@ class IntegerField implements Type
 {
     protected $label = '';
     protected $name = '';
-    protected $default = '';
+    public $default = '';
     protected $value = 0;
     protected $null = false;
     public $hidden = false;
@@ -226,7 +226,7 @@ class IntegerField implements Type
     
     public function validate()
     {
-        return is_int($this->value);
+        return ( is_numeric($this->value) && ((int)$this->value == $this->value) );
     }
     
     public function databaseValue()
@@ -259,7 +259,7 @@ class TextField implements Type
 {
     protected $label = '';
     protected $name = '';
-    protected $default = '';
+    public $default = '';
     protected $value = '';
     protected $null = false;
     public $hidden = false;
@@ -406,12 +406,22 @@ class ForeignKeyField implements SingleRelationType
     
     public function set($value)
     {
-        if ($this->value != $value)
+        if (is_numeric($value))
         {
-            $this->dirty = true;
+            $value = new $this->class($value);
         }
         
-        return ($this->value = $value);
+        if (!is_a($value, $this->class))
+        {
+            throw new Exception("Bad assignment on foreignkey");
+        }
+        
+        if ($value->id)
+        {
+            return ($this->value = $value);
+        }
+        
+        // TODO: Error/exception on bad set?
     }
     
     public function validate()
@@ -510,14 +520,63 @@ class ManyToManyField implements MultipleRelationType
         return $this->values;
     }
     
-    public function set($value)
+    public function set($values)
     {
         if (!$this->values)
         {
             $this->retrieve();
         }
         
-        return ($this->value = $value);
+        if (!$values)
+        {
+            $values = array();
+        }
+        
+        foreach ($values as $key => $value)
+        {
+            if (is_object($value))
+            {
+                $values[$key] = $value->id;
+            }
+        }
+        
+        $existing_ids = array();
+        
+        foreach ($this->values as $key => $value)
+        {
+            $existing_ids = $value->id;
+        }
+        
+        $vals = array();
+        
+        foreach ($values as $key => $value)
+        {
+            $vals[$key] = $value;
+        }
+        
+        $values = $vals;
+        
+        foreach ($this->values as $key => $existing)
+        {
+            if (!in_array($existing->id, $values))
+            {
+                unset($this->values[$key]);
+            }
+        }
+        
+        if (count($this->values) != count($values))
+        {
+            foreach ($values as $value)
+            {
+                if (!in_array($value, $existing_ids))
+                {
+                    $this->values[] = new $this->class($value);
+                }
+            }
+        }
+        
+        // TODO: Return indicator of success/failure?
+        return true;
     }
     
     private function retrieve()
@@ -584,6 +643,48 @@ class ManyToManyField implements MultipleRelationType
         if (!mysql_query($replace) && DEBUG)
         {
             throw new Exception("Failed to save relation with query {$replace}");
+        }
+    }
+    
+    public function dissociate($object)
+    {
+        $name = $object->type;
+        
+        $tables = array($this->type, $object->type);
+        sort($tables, SORT_STRING);
+        $join_table = implode('_', $tables);
+        
+        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id . "' and `{$object->type}_id` = '{$object->id}'";
+        
+        if (!mysql_query($delete) && DEBUG)
+        {
+            throw new Exception("Failed to delete relation with query {$delete}");
+        }
+        
+        if (isset($this->$name))
+        {
+            foreach ($this->$name as $key => $obj)
+            {
+                if ($obj->id == $object->id)
+                {
+                    unset($this->$name[$key]);
+                }
+            }
+            
+            Cache::set($this->cache_index, $this);
+        }
+        
+        if (isset($object->$name))
+        {
+            foreach ($object->$name as $key => $obj)
+            {
+                if ($obj->id == $this->id)
+                {
+                    unset($object->$name[$key]);
+                }
+            }
+            
+            Cache::set($this->cache_index, $this);
         }
     }
     

@@ -73,7 +73,8 @@ abstract class Saveable
         }
         else
         {
-            $this->dirty = false;
+            // TODO: Determine if default dirty value can work for all-m2m models
+            //$this->dirty = false;
         }
         
         $ovars = get_object_vars($this);
@@ -183,7 +184,21 @@ abstract class Saveable
     {
         foreach ($values as $key => $value)
         {
-            $this->__set($key, $value);
+            if ( is_object($this->$key) && is_a($this->$key, 'Type') )
+            {
+                $previous = $this->$key->get();
+                $this->$key->set($value);
+                
+                if ($previous->id != $this->$key->id)
+                {
+                    $this->dirty = true;
+                }
+            }
+            else if ($this->$key != $value)
+            {
+                $this->$key = $value;
+                $this->dirty = true;
+            }
         }
         
         return true;
@@ -228,48 +243,6 @@ abstract class Saveable
         }
     }
     
-    public function dissociate($object)
-    {
-        $name = $object->type;
-        
-        $tables = array($this->type, $object->type);
-        sort($tables, SORT_STRING);
-        $join_table = implode('_', $tables);
-        
-        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "' and `{$object->type}_id` = '{$object->id}'";
-        
-        if (!mysql_query($delete) && DEBUG)
-        {
-            throw new Exception("Failed to delete relation with query {$delete}");
-        }
-        
-        if (isset($this->$name))
-        {
-            foreach ($this->$name as $key => $obj)
-            {
-                if ($obj->id == $object->id)
-                {
-                    unset($this->$name[$key]);
-                }
-            }
-            
-            Cache::set($this->cache_index, $this);
-        }
-        
-        if (isset($object->$name))
-        {
-            foreach ($object->$name as $key => $obj)
-            {
-                if ($obj->id == $this->id->get())
-                {
-                    unset($object->$name[$key]);
-                }
-            }
-            
-            Cache::set($this->cache_index, $this);
-        }
-    }
-    
     public function save()
     {
         if (!$this->dirty)
@@ -303,7 +276,8 @@ abstract class Saveable
             {
                 $value->save();
             }
-            else if (method_exists($value, 'databaseValue'))
+            
+            if (method_exists($value, 'databaseValue'))
             {
                 $dbkeys[] = "`{$key}`";
                 $dbvals[] = $value->databaseValue();

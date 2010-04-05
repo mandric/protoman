@@ -40,7 +40,7 @@ function __autoload($class_name)
 {
     if (DEBUG)
     {
-        trigger_error("Classes extending Saveable MUST be loaded without relying on __autoload(...) [$class_name]", E_USER_WARNING);
+        throw new Exception("Classes extending Saveable MUST be loaded without relying on __autoload(...) [$class_name]", E_USER_WARNING);
     }
 }
 
