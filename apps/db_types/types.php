@@ -544,7 +544,7 @@ class ManyToManyField implements MultipleRelationType
         
         foreach ($this->values as $key => $value)
         {
-            $existing_ids = $value->id;
+            $existing_ids[] = $value->id;
         }
         
         $vals = array();
@@ -619,75 +619,6 @@ class ManyToManyField implements MultipleRelationType
         return $this->values;
     }
     
-    public function associate($object)
-    {
-        if (!$this->source_id)
-        {
-            trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
-            
-            $source = new $this->source_type($this->source_id);
-            $source->save();
-            
-            $this->source_id = $source->id;
-        }
-        
-        $name = $object->type;
-        
-        $tables = array($this->source_type, $object->type);
-        sort($tables, SORT_STRING);
-        $join_table = implode('_', $tables);
-        
-        $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
-        $replace = "replace into `{$join_table}` set {$pairs}";
-        
-        if (!mysql_query($replace) && DEBUG)
-        {
-            throw new Exception("Failed to save relation with query {$replace}");
-        }
-    }
-    
-    public function dissociate($object)
-    {
-        $name = $object->type;
-        
-        $tables = array($this->type, $object->type);
-        sort($tables, SORT_STRING);
-        $join_table = implode('_', $tables);
-        
-        $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id . "' and `{$object->type}_id` = '{$object->id}'";
-        
-        if (!mysql_query($delete) && DEBUG)
-        {
-            throw new Exception("Failed to delete relation with query {$delete}");
-        }
-        
-        if (isset($this->$name))
-        {
-            foreach ($this->$name as $key => $obj)
-            {
-                if ($obj->id == $object->id)
-                {
-                    unset($this->$name[$key]);
-                }
-            }
-            
-            Cache::set($this->cache_index, $this);
-        }
-        
-        if (isset($object->$name))
-        {
-            foreach ($object->$name as $key => $obj)
-            {
-                if ($obj->id == $this->id)
-                {
-                    unset($object->$name[$key]);
-                }
-            }
-            
-            Cache::set($this->cache_index, $this);
-        }
-    }
-    
     public function displaySafe()
     {
         if (!$this->values)
@@ -745,6 +676,49 @@ class ManyToManyField implements MultipleRelationType
         
         return Response::renderTemplate('db_types', 'many_to_many.php');
     }
+    
+    public function associate($object)
+    {
+        if (!$this->source_id)
+        {
+            trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
+            
+            $source = new $this->source_type($this->source_id);
+            $source->save();
+            
+            $this->source_id = $source->id;
+        }
+        
+        $name = $object->type;
+        
+        $tables = array($this->source_type, $object->type);
+        sort($tables, SORT_STRING);
+        $join_table = implode('_', $tables);
+        
+        $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
+        $replace = "replace into `{$join_table}` set {$pairs}";
+        
+        if (!mysql_query($replace) && DEBUG)
+        {
+            throw new Exception("Failed to save relation with query {$replace}");
+        }
+    }
+    
+    public function dissociate($object)
+    {
+        $tables = array($this->source_type, $object->type);
+        sort($tables, SORT_STRING);
+        $join_table = implode('_', $tables);
+        
+        $delete = "delete from `{$join_table}` where `{$this->source_type}_id` = '" . $this->source_id . "' and `{$object->type}_id` = '{$object->id}'";
+        
+        if (!mysql_query($delete) && DEBUG)
+        {
+            throw new Exception("Failed to delete relation with query {$delete}");
+        }
+        
+        Cache::delete($source->cache_index);
+    }
 }
 
 
@@ -800,7 +774,7 @@ class ArrayProcessor extends ArrayObject
     {
         if ( is_object($this[$offset]) && $this[$offset]->is_saveable )
         {
-            return $this->obj->dissociate($this->offsetGet($offset));
+            $this->obj->dissociate($this->offsetGet($offset));
         }
         
         return parent::offsetUnset($offset);

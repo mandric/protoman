@@ -27,6 +27,27 @@ class Cache
         return false;
     }
     
+    public static function delete($index)
+    {
+        if (MC_ENABLED)
+        {
+            $mc = Cache::$memcache->delete($index);
+            
+            if ($mc)
+            {
+                return $mc;
+            }
+        }
+        
+        if (Cache::$internal[$index])
+        {
+            unset(Cache::$internal[$index]);
+            return true;
+        }
+        
+        return false;
+    }
+    
     public static function set($index, $value)
     {
         if (MC_ENABLED)
