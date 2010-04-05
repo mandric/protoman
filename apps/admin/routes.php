@@ -13,4 +13,5 @@ new Route('admin', array(
     '/(?P<class>\w+)' => array($object_listing),
     '/(?P<class>\w+)/add' => array($object_form),
     '/(?P<class>\w+)/(?P<id>\d+)' => array($object_form),
+    '/' => array($class_listing),
     ));

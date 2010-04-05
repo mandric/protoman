@@ -118,7 +118,7 @@ foreach ($declared as $classname)
     
     if (is_subclass_of($classname, 'Saveable'))
     {
-        Saveable::$subclasses[] = $obj->type;
+        Saveable::$subclasses[] = $classname;
     }
     else if (is_subclass_of($classname, 'Controller'))
     {
