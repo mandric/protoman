@@ -55,6 +55,7 @@ $loadables = array(
 
 // The order here is important!  Changing it could break loading.
 require_once('db/Saveable.php');
+require_once('base/Cache.php');
 require_once('base/Controller.php');
 require_once('base/Framework.php');
 require_once('base/Request.php');
@@ -141,7 +142,14 @@ foreach ($declared as $classname)
 }
 
 
-Request::$params = $_REQUEST;
+Request::$params = &$_REQUEST;
+Request::$session = &$_SESSION;
+Request::$get = &$_GET;
+Request::$post = &$_POST;
+Request::$files = &$_FILES;
+Request::$cookie = &$_COOKIE;
+Request::$server = &$_SERVER;
+Request::$env = &$_ENV;
 
 Controller::process($_SERVER['QUERY_STRING']);
 

@@ -8,17 +8,21 @@ class CharField implements Type
     protected $default = '';
     protected $value = '';
     protected $null = false;
+    public $hidden = false;
     protected $length = 256;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_id = $source->id;
+        $this->source_type = $source->type;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -94,25 +98,84 @@ class CharField implements Type
 }
 
 
+class PasswordField extends CharField
+{
+    public function &get()
+    {
+        return $this->value;
+    }
+    
+    public function set($value)
+    {
+        if (strlen($value))
+        {
+            $hash = md5($this->value);
+            
+            if ($hash != $this->value)
+            {
+                $this->dirty = true;
+            }
+            
+            return ($this->value = $hash);
+        }
+        
+        return false;
+    }
+    
+    public function validate()
+    {
+        return (is_string($this->value));
+    }
+    
+    public function databaseValue()
+    {
+        return "'" . mysql_real_escape_string($this->value) . "'";
+    }
+    
+    public function displaySafe()
+    {
+        return htmlentities($this->value, ENT_QUOTES);
+    }
+    
+    public function displayRaw()
+    {
+        return $this->value;
+    }
+    
+    public function formField()
+    {
+        Response::$context['field_type'] = 'password';
+        Response::$context['field_name'] = $this->name;
+        Response::$context['field_label'] = $this->label;
+        Response::$context['field_value'] = '';
+        return Response::renderTemplate('db_types', 'input_type.php');
+    }
+}
+
+
 class IntegerField implements Type
 {
     protected $label = '';
     protected $name = '';
     protected $default = '';
-    protected $value = '';
+    protected $value = 0;
     protected $null = false;
+    public $hidden = false;
     protected $unsigned = false;
     protected $length = 12;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_id = $source->id;
+        $this->source_type = $source->type;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -199,16 +262,20 @@ class TextField implements Type
     protected $default = '';
     protected $value = '';
     protected $null = false;
-    protected $source = false;
+    public $hidden = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length') as $var)
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
         {
             if ($args[$var])
             {
@@ -301,19 +368,26 @@ class ForeignKeyField implements SingleRelationType
     protected $class = '';
     protected $value = false;
     protected $null = false;
-    protected $source = false;
+    public $hidden = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->class = $args[0];
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        if ($args['null'])
+        foreach (array('null', 'hidden') as $var)
         {
-            $this->null = $args['null'];
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
         }
     }
     
@@ -389,16 +463,28 @@ class ManyToManyField implements MultipleRelationType
     protected $label = '';
     protected $name = '';
     protected $class = '';
+    public $hidden = false;
     protected $values = false;
-    protected $source = false;
+    protected $source_type = '';
+    public $source_id = 0;
     
     public function __construct($source, $name, $args)
     {
-        $this->source = $source;
+        $this->source_type = $source->type;
+        $this->source_id = $source->id;
+        
         $this->class = strtolower($args[0]);
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('hidden') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
     }
     
     public function sql()
@@ -439,18 +525,18 @@ class ManyToManyField implements MultipleRelationType
         // TODO: Implement Cache; use here
         $this->values = new ArrayProcessor(array(), $this);
         
-        $types = array($this->class, $this->source->type);
+        $types = array($this->class, $this->source_type);
         sort($types, SORT_STRING);
         $join_table = implode('_', $types);
         
         $object_column = $this->class . '_id';
-        $self_column = $this->source->type . '_id';
+        $self_column = $this->source_type . '_id';
         
         // TODO: Default ordering?
         $joins = "
             select t.* from `{$this->class}` t
             join `{$join_table}` j on j.`{$object_column}` = t.`id`
-            where j.`{$self_column}` = '{$this->source->id}' 
+            where j.`{$self_column}` = '{$this->source_id}' 
             order by t.id asc
             ";
         
@@ -466,7 +552,7 @@ class ManyToManyField implements MultipleRelationType
                 
                 if ($record->id)
                 {
-                    $this->values[] = $record;
+                    $this->values->append($record);
                 }
             }
         }
@@ -476,38 +562,28 @@ class ManyToManyField implements MultipleRelationType
     
     public function associate($object)
     {
-        if (!$this->source->id)
+        if (!$this->source_id)
         {
             trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
-            $this->source->save();
+            
+            $source = new $this->source_type($this->source_id);
+            $source->save();
+            
+            $this->source_id = $source->id;
         }
         
         $name = $object->type;
         
-        $tables = array($this->source->type, $object->type);
+        $tables = array($this->source_type, $object->type);
         sort($tables, SORT_STRING);
         $join_table = implode('_', $tables);
         
-        $pairs = "`{$this->source->type}_id` = '{$this->source->id}', `{$object->type}_id` = '{$object->id}'";
+        $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
         $replace = "replace into `{$join_table}` set {$pairs}";
         
         if (!mysql_query($replace) && DEBUG)
         {
             throw new Exception("Failed to save relation with query {$replace}");
-        }
-        
-        if (isset($this->source->$name))
-        {
-            $this->source->$name->append($object);
-            
-            $this->source->cache();
-        }
-        
-        if (isset($object->$name))
-        {
-            $object->$name->append($object);
-            
-            $this->cache();
         }
     }
     
@@ -589,7 +665,7 @@ class ArrayProcessor extends ArrayObject
     
     public function append($value)
     {
-        return $this->offsetSet('', $value, true, false);
+        return $this->offsetSet(null, $value, true, false);
     }
     
     public function offsetSet($offset, $value, $overwrite=true, $save=true)

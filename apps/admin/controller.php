@@ -5,9 +5,8 @@ class AdminController extends Controller
 {
     public function objectForm($class, $id=false)
     {
-        $stuff = func_get_args();
-        $thing = new $class($id);
-        $form = new Form($thing);
+        $obj = new $class($id);
+        $form = new Form($obj);
         $form->render();
     }
     
