@@ -32,6 +32,9 @@ class Form
         Response::$context['form_object'] = $this->obj;
         Response::$context['form_fields'] = $fields;
         
-        return Response::renderTemplate('forms', 'generic_form.php');
+        $args = func_get_args();
+        $template = (count($args)) ? $args : array('forms', 'generic_form.php') ;
+        
+        return call_user_func_array(array('Response', 'renderTemplate'), $template);
     }
 }

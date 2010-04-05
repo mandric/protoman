@@ -17,6 +17,16 @@ class Response
             Response::$blocks[$name] = false;
             ob_start();
         }
+        else
+        {
+            if (!Response::$blocks['super'])
+            {
+                Response::$blocks['super'] = array();
+            }
+            
+            // TODO: Test 'super' implementation
+            Response::$blocks['super'][$name] = Response::$blocks[$name];
+        }
     }
     
     public static function endBlock($name)
