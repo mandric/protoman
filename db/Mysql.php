@@ -26,7 +26,7 @@ class Mysql implements DbAdapter
         return true;
     }
     
-    public static function query($query)
+    public static function select($query)
     {
         $results = array();
         
@@ -38,5 +38,25 @@ class Mysql implements DbAdapter
         }
         
         return $results;
+    }
+    
+    public static function delete($query)
+    {
+        return Mysql::query($query);
+    }
+    
+    public static function insert($query)
+    {
+        return Mysql::query($query);
+    }
+    
+    public static function update($query)
+    {
+        return Mysql::query($query);
+    }
+    
+    private static function query($query)
+    {
+        return mysql_query($query, Query::$db_conn);
     }
 }

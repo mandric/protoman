@@ -628,11 +628,11 @@ class ManyToManyField implements MultipleRelationType
             order by t.id asc
             ";
         
-        $joins = mysql_query($joins);
+        $joins = call_user_func(array(Query::$db_class, 'select'), $joins);
         
-        if ($joins && mysql_numrows($joins))
+        if ($joins && count($joins))
         {
-            while ($record = mysql_fetch_assoc($joins))
+            foreach ($joins as $record)
             {
                 // Built from record but didn't load children; used t.* in query:
             //    array_push($return, new $type($record));
@@ -726,11 +726,11 @@ class ManyToManyField implements MultipleRelationType
         $join_table = implode('_', $tables);
         
         $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
-        $replace = "replace into `{$join_table}` set {$pairs}";
+        $insert = "insert into `{$join_table}` set {$pairs}";
         
-        if (!mysql_query($replace) && DEBUG)
+        if (!call_user_func(array(Query::$db_class, 'insert'), $insert) && DEBUG)
         {
-            throw new Exception("Failed to save relation with query {$replace}");
+            throw new Exception("Failed to save relation with query {$insert}");
         }
     }
     
@@ -742,7 +742,7 @@ class ManyToManyField implements MultipleRelationType
         
         $delete = "delete from `{$join_table}` where `{$this->source_type}_id` = '" . $this->source_id . "' and `{$object->type}_id` = '{$object->id}'";
         
-        if (!mysql_query($delete) && DEBUG)
+        if (!call_user_func(array(Query::$db_class, 'delete'), $delete) && DEBUG)
         {
             throw new Exception("Failed to delete relation with query {$delete}");
         }

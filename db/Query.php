@@ -188,7 +188,7 @@ class Query extends ArrayObject
     
     public function run($raw = false)
     {
-        $results = call_user_func(array(Query::$db_class, 'query'), $this->build());
+        $results = call_user_func(array(Query::$db_class, 'select'), $this->build());
         
         if ($raw)
         {

@@ -245,7 +245,7 @@ abstract class Saveable
         
         $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "'";
         
-        if (!mysql_query($delete) && DEBUG)
+        if (!call_user_func(array(Query::$db_class, 'delete'), $delete) && DEBUG)
         {
             throw new Exception("Failed to unjoin with query {$delete}");
         }
@@ -305,7 +305,7 @@ abstract class Saveable
             
             $update = "update `{$this->type}` set {$pairs} where `id`={$id}";
             
-            if (call_user_func(array(Query::$db_class, 'query'), $update))
+            if (call_user_func(array(Query::$db_class, 'update'), $update))
             {
                 return $id;
             }
@@ -317,7 +317,7 @@ abstract class Saveable
             
             $insert = "insert into `{$this->type}` ({$dbkeys}) values ({$dbvals})";
             
-            if (call_user_func(array(Query::$db_class, 'query'), $insert))
+            if (call_user_func(array(Query::$db_class, 'insert'), $insert))
             {
                 $this->id->populate(call_user_func(array(Query::$db_class, 'insert_id')));
                 
@@ -346,7 +346,7 @@ abstract class Saveable
         
         if (DEBUG)
         {
-            throw new Exception("Saving failed on object of type {$this->type} with id " . $this->id->get() . ": " . mysql_error());
+            throw new Exception("Saving failed on object of type {$this->type} with id " . $this->id->get());
         }
         else
         {
@@ -359,7 +359,7 @@ abstract class Saveable
         $id = mysql_real_escape_string($this->id->get());
         $delete = "delete from `{$this->type}` where id='$id'";
         
-        if (call_user_func(array(Query::$db_class, 'query'), $delete))
+        if (call_user_func(array(Query::$db_class, 'delete'), $delete))
         {
             $relations = array();
             
@@ -389,7 +389,7 @@ abstract class Saveable
                     $join_table = implode('_', $tables);
                     
                     $delete = "delete from `{$join_table}` where `{$this->type}_id`='" . $this->id->get() . "'";
-                    mysql_query($delete);
+                    call_user_func(array(Query::$db_class, 'delete'), $delete);
                 }
                 catch (Exception $e)
                 {
@@ -403,7 +403,7 @@ abstract class Saveable
                 foreach (Saveable::$singlerels[$this->type] as $target_type)
                 {
                     $update = "update `{$target_type}` set `{$this->type}`=0 where `{$this->type}`='" . $this->id->get() . "'";
-                    mysql_query($update);
+                    call_user_func(array(Query::$db_class, 'update'), $update);
                 }
             }
             
@@ -419,7 +419,7 @@ abstract class Saveable
         
         if (DEBUG)
         {
-            throw new Exception("Bad call to delete for object of type {$this->type} with id " . $this->id->get() . ": " . mysql_error());
+            throw new Exception("Bad call to delete for object of type {$this->type} with id " . $this->id->get());
         }
         else
         {
