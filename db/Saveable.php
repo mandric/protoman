@@ -90,12 +90,16 @@ abstract class Saveable
                     
                     if ( $ovars[$key] && ($ovars[$key] != $value) )
                     {
-                        $this->$key->set($ovars[$key]);
+                        $this->$key->populate($ovars[$key]);
+                    }
+                    else if ($this->$key->default)
+                    {
+                        $this->$key->populate($this->$key->default);
                     }
                 }
                 else
                 {
-                    trigger_error("Bad type definition on {$this->type}", E_USER_WARNING);
+                    throw new Exception("Bad type definition on {$this->type}");
                 }
             }
         }
@@ -144,12 +148,8 @@ abstract class Saveable
                 
                 return true;
             }
-            else if (DEBUG)
-            {
-                trigger_error("Bad load call on type {$this->type} with id {$id}", E_USER_WARNING);
-            }
             
-            return false;
+            throw new Exception("Bad load call on type {$this->type} with id {$id}");
         }
         
         if (DEBUG)
@@ -186,7 +186,7 @@ abstract class Saveable
         {
             if ( is_object($this->$key) && is_a($this->$key, 'Type') )
             {
-                $previous = $this->$key->get();
+                $previous = $this->$key;
                 $this->$key->set($value);
                 
                 if ($previous->id != $this->$key->id)
@@ -208,14 +208,21 @@ abstract class Saveable
     {
         $fields = array();
         
-        $vars = get_object_vars($obj);
-        
-        foreach ($vars as $key => $var)
+        if (is_object($obj))
         {
-            if (is_object($var) && is_a($var, 'Type'))
+            $vars = get_object_vars($obj);
+            
+            foreach ($vars as $key => $var)
             {
-                $fields[$key] = $var;
+                if (is_object($var) && is_a($var, 'Type'))
+                {
+                    $fields[$key] = $var;
+                }
             }
+        }
+        else
+        {
+            return get_class_vars($obj);
         }
         
         return $fields;
@@ -268,7 +275,7 @@ abstract class Saveable
                 if (!$value->validate())
                 {
                     // TODO: Throw exception on validation failure?
-                    trigger_error("Validation exception on field {$key}, class {$this->type}", E_USER_WARNING);
+                    throw new Exception("Validation exception on field {$key}, class {$this->type}");
                 }
             }
             
@@ -293,7 +300,7 @@ abstract class Saveable
         {
             if (!$this->id->get())
             {
-                $this->id->set(mysql_insert_id());
+                $this->id->populate(mysql_insert_id());
                 
                 if (!$this->id->get() && DEBUG)
                 {
@@ -368,7 +375,7 @@ abstract class Saveable
                 catch (Exception $e)
                 {
                     // May fail for various reasons; this could use actual testing.
-                    trigger_error("Assoc deletion failed on {$this->type} id " . $this->id->get() . ": " . $e->getMessage(), E_USER_WARNING);
+                    throw new Exception("Assoc deletion failed on {$this->type} id " . $this->id->get() . ": " . $e->getMessage());
                 }
             }
             
@@ -386,7 +393,7 @@ abstract class Saveable
                 unset(self::$instances[$this->type][$this->id->get()]);
             }
             
-            $this->id->set(0);
+            $this->id->populate(0);
             
             return true;
         }

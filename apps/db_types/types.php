@@ -52,6 +52,11 @@ class CharField implements Type
         return implode(' ', $create);
     }
     
+    public function populate($value)
+    {
+        return $this->value = $value;
+    }
+    
     public function &get()
     {
         return $this->value;
@@ -69,7 +74,7 @@ class CharField implements Type
     
     public function validate()
     {
-        return (is_string($this->value) || is_numeric($this->value));
+        return is_string($this->value) && strlen($this->value);
     }
     
     public function databaseValue()
@@ -105,6 +110,11 @@ class PasswordField extends CharField
         return $this->value;
     }
     
+    public function populate($value)
+    {
+        return $this->value = $value;
+    }
+    
     public function set($value)
     {
         if (strlen($value))
@@ -124,7 +134,7 @@ class PasswordField extends CharField
     
     public function validate()
     {
-        return (is_string($this->value));
+        return (is_string($this->value)) && $this->value;
     }
     
     public function databaseValue()
@@ -207,6 +217,11 @@ class IntegerField implements Type
         }
         
         return implode(' ', $create);
+    }
+    
+    public function populate($value)
+    {
+        return $this->value = $value;
     }
     
     public function &get()
@@ -305,6 +320,11 @@ class TextField implements Type
         return implode(' ', $create);
     }
     
+    public function populate($value)
+    {
+        return $this->value = $value;
+    }
+    
     public function &get()
     {
         return $this->value;
@@ -366,6 +386,7 @@ class ForeignKeyField implements SingleRelationType
     protected $label = '';
     protected $name = '';
     protected $class = '';
+    public $default = 0;
     protected $value = false;
     protected $null = false;
     public $hidden = false;
@@ -399,6 +420,11 @@ class ForeignKeyField implements SingleRelationType
         return implode(' ', $create);
     }
     
+    public function populate($value)
+    {
+        return $this->set($value);
+    }
+    
     public function &get()
     {
         return $this->value;
@@ -416,10 +442,7 @@ class ForeignKeyField implements SingleRelationType
             throw new Exception("Bad assignment on foreignkey");
         }
         
-        if ($value->id)
-        {
-            return ($this->value = $value);
-        }
+        return ($this->value = $value);
         
         // TODO: Error/exception on bad set?
     }
@@ -431,7 +454,7 @@ class ForeignKeyField implements SingleRelationType
             return true;
         }
         
-        if ($this->null && !$this->value)
+        if ( $this->null && (!$this->value || !$this->value->id) )
         {
             return true;
         }
@@ -463,6 +486,7 @@ class ForeignKeyField implements SingleRelationType
         Response::$context['field_label'] = $this->label;
         Response::$context['field_value'] = ($this->value && $this->value->id) ? $this->value->id : $this->default ;
         Response::$context['field_options'] = $objs;
+        
         return Response::renderTemplate('db_types', 'foreign_key.php');
     }
 }
@@ -508,6 +532,11 @@ class ManyToManyField implements MultipleRelationType
     {
         // Should always be current with DB
         return true;
+    }
+    
+    public function populate($value)
+    {
+        return $this->set($value);
     }
     
     public function &get()
@@ -679,14 +708,15 @@ class ManyToManyField implements MultipleRelationType
     
     public function associate($object)
     {
-        if (!$this->source_id)
+        if (!$this->source_id || is_array($this->source_id))
         {
-            trigger_error("Called associate on an unsaved object; saving automatically.", E_USER_WARNING);
-            
-            $source = new $this->source_type($this->source_id);
+            throw new Exception("Called associate on an unsaved object.");
+            /*
+            $source = new $this->source_type();
             $source->save();
             
             $this->source_id = $source->id;
+            */
         }
         
         $name = $object->type;

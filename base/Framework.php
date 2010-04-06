@@ -29,8 +29,7 @@ class Route
         }
         else
         {
-            trigger_error("Routes require 1 or 2 arguments", E_USER_WARNING);
-            return false;
+            throw new Exception("Routes require 1 or 2 arguments");
         }
         
         if ($app)
@@ -58,8 +57,9 @@ interface Type
     public function __construct($source, $name, $args);
     
     public function sql();
-    public function &get();
     
+    public function populate($value);
+    public function &get();
     public function set($value);
 }
 

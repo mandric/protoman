@@ -56,11 +56,7 @@ class Controller
             }
         }
         
-        if (DEBUG)
-        {
-            trigger_error("404 handler being invoked for: " . $querystring, E_USER_WARNING);
-        }
-        
-        // TODO: 404 handling here
+        // TODO: Conditionally catch exception in framework.php based on DEBUG setting
+        throw new Exception("404 handler being invoked for: " . $querystring);
     }
 }

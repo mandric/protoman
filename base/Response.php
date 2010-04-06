@@ -44,27 +44,12 @@ class Response
         {
             return Response::$blocks[$name];
         }
-        else if (DEBUG)
-        {
-            trigger_error("Attempted to render nonexistent block: $name", E_USER_WARNING);
-        }
         
-        return '';
+        throw new Exception("Attempted to render nonexistent block: $name");
     }
     
     public static function extendTemplate()
     {
-        /*
-        if (Response::$in_template)
-        {
-            if (DEBUG)
-            {
-                trigger_error("Manual reset of Response::\$in_template", E_USER_WARNING);
-            }
-            
-            Response::$in_template = false;
-        }
-        */
         $args = func_get_args();
         Response::$extends[] = $args;
     }
@@ -96,7 +81,6 @@ class Response
                 break;
             default:
                 throw new Exception("Invalid renderTemplate call: Takes 1 or 2 arguments, given: " . print_r($args, true));
-                break;
         }
         
         $content = false;
@@ -130,6 +114,7 @@ class Response
             return $content;
         }
         
+        // TODO: Run through $extends backwards?
         foreach (Response::$extends as $key => $args)
         {
             unset(Response::$extends[$key]);

@@ -3,6 +3,23 @@
 
 class AppController extends Controller
 {
+    public function testQuery()
+    {
+        $q = new Query('user');
+        
+        echo $q->build() . "<br>";
+        
+        $q->filter('id', 'in', array(1,2,'haha'))->order('id', 'desc');
+        
+        echo $q->build() . "<br>";
+        
+        $q->run();
+        
+        echo "<pre>";
+        
+        print_r($q);
+    }
+    
     public function testOrm()
     {
         $u1 = new User();

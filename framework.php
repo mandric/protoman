@@ -6,9 +6,6 @@ define('FRAMEWORK_APPS_PATH', FRAMEWORK_PATH . 'apps/');
 
 session_start();
 
-(mysql_connect(DB_HOST, DB_USER, DB_PASS) && mysql_select_db(DB_NAME))
- || die("Connection error: " . mysql_error()) ;
-
 
 $mc = false;
 
@@ -29,7 +26,7 @@ catch (Exception $e)
 {
     if (DEBUG)
     {
-        trigger_error($e->getMessage(), E_USER_WARNING);
+        throw new Exception($e->getMessage());
     }
 }
 
@@ -40,7 +37,7 @@ function __autoload($class_name)
 {
     if (DEBUG)
     {
-        throw new Exception("Classes extending Saveable MUST be loaded without relying on __autoload(...) [$class_name]", E_USER_WARNING);
+        throw new Exception("Classes extending Saveable MUST be loaded without relying on __autoload(...) [$class_name]");
     }
 }
 
@@ -54,12 +51,21 @@ $loadables = array(
 
 
 // The order here is important!  Changing it could break loading.
+require_once('db/Query.php');
+require_once('db/DbAdapter.php');
+require_once('db/Mysql.php');
 require_once('db/Saveable.php');
+
 require_once('base/Cache.php');
 require_once('base/Controller.php');
 require_once('base/Framework.php');
 require_once('base/Request.php');
 require_once('base/Response.php');
+
+
+call_user_func(array('mysql', 'connect'));
+Query::$db_callback = array('mysql', 'query');
+
 
 if (is_file('routes.php'))
 {
