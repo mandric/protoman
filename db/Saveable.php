@@ -134,12 +134,13 @@ abstract class Saveable
                 return true;
             }
             
-            $values = "select * from `{$this->type}` where `id`='{$id}'";
-            $values = mysql_query($values);
+            $q = new Query($this->type);
+            $q->filter('id', '=', $id);
+            $results = $q->run(true);
             
-            if ($values = mysql_fetch_assoc($values))
+            if (count($results))
             {
-                foreach ($values as $key => $value)
+                foreach ($results[0] as $key => $value)
                 {
                     $this->$key = $value;
                 }
@@ -291,16 +292,34 @@ abstract class Saveable
             }
         }
         
-        $dbkeys = implode(',', $dbkeys);
-        $dbvals = implode(',', $dbvals);
+        $id = $this->id->get();
         
-        $replace = "replace into `{$this->type}` ({$dbkeys}) values ({$dbvals})";
-        
-        if (mysql_query($replace))
+        if ($id)
         {
-            if (!$this->id->get())
+            $pairs = array();
+            
+            foreach ($dbkeys as $idx => $key)
             {
-                $this->id->populate(mysql_insert_id());
+                $pairs[$key] = $dbvals[$idx];
+            }
+            
+            $update = "update `{$this->type}` set {$pairs} where `id`={$id}";
+            
+            if (call_user_func(array(Query::$db_class, 'query'), $update))
+            {
+                return $id;
+            }
+        }
+        else
+        {
+            $dbkeys = implode(',', $dbkeys);
+            $dbvals = implode(',', $dbvals);
+            
+            $insert = "insert into `{$this->type}` ({$dbkeys}) values ({$dbvals})";
+            
+            if (call_user_func(array(Query::$db_class, 'query'), $insert))
+            {
+                $this->id->populate(call_user_func(array(Query::$db_class, 'insert_id')));
                 
                 if (!$this->id->get() && DEBUG)
                 {
@@ -340,7 +359,7 @@ abstract class Saveable
         $id = mysql_real_escape_string($this->id->get());
         $delete = "delete from `{$this->type}` where id='$id'";
         
-        if (mysql_query($delete))
+        if (call_user_func(array(Query::$db_class, 'query'), $delete))
         {
             $relations = array();
             
@@ -433,71 +452,5 @@ abstract class Saveable
         }
         
         $this->$name->set($value);
-    }
-    
-    public function getOne($where = array())
-    {
-        return $this->get($where, true);
-    }
-    
-    public function getAll($where = array())
-    {
-        return $this->get($where, false);
-    }
-    
-    private function get($where, $one = false)
-    {
-        $conditions = array('1');
-        
-        foreach ($where as $field => $value)
-        {
-            $field = mysql_real_escape_string($field);
-            $comp = '=';
-            
-            if (is_array($value))
-            {
-                foreach ($value as $comp => $val)
-                {
-                    $comp = in_array($comp, array('>', '<', '<=', '>=')) ? $comp : '=' ;
-                    
-                    $conditions[] = "`{$field}` {$comp} '{$val}'";
-                }
-            }
-            else
-            {
-                $value = mysql_real_escape_string($value);
-                
-                $conditions[] = "`{$field}` {$comp} '{$value}'";
-            }
-        }
-        
-        $conditions = implode(' and ', $conditions);
-        
-        $records = "select id from `{$this->type}` where {$conditions} order by id asc";
-        
-        if ( !($records = mysql_query($records)) )
-        {
-            if (DEBUG)
-            {
-                throw new Exception("Bad get* call from {$this->type} for {$conditions}. " . mysql_error());
-            }
-            
-            return false;
-        }
-        
-        $type = $this->type;
-        $return = ($one) ? false : array() ;
-        
-        while ($record = mysql_fetch_assoc($records))
-        {
-            if ($one)
-            {
-                return new $type($record['id']);
-            }
-            
-            array_push($return, new $type($record['id']));
-        }
-        
-        return $return;
     }
 }

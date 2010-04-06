@@ -9,6 +9,10 @@ class AppController extends Controller
         
         echo $q->build() . "<br>";
         
+        $q->filter('username', 'not like', 'dem%')->group('last_name');
+        
+        echo $q->build() . "<br>";
+        
         $q->filter('id', 'in', array(1,2,'haha'))->order('id', 'desc');
         
         echo $q->build() . "<br>";

@@ -64,7 +64,7 @@ require_once('base/Response.php');
 
 
 call_user_func(array('mysql', 'connect'));
-Query::$db_callback = array('mysql', 'query');
+Query::$db_class = 'mysql';
 
 
 if (is_file('routes.php'))

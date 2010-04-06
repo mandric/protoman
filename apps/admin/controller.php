@@ -25,9 +25,11 @@ class AdminController extends Controller
     
     public function objectListing($class)
     {
-        $obj = new $class();
+        $q = new Query($class);
+        $q->run();
+        
         Response::$context['listing_class'] = $class;
-        Response::$context['listing_objects'] = $obj->getAll();
+        Response::$context['listing_objects'] = $q;
         
         return Response::renderTemplate('admin', 'object_listing.php');
     }

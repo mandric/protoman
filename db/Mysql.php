@@ -3,6 +3,11 @@
 
 class Mysql implements DbAdapter
 {
+    public static function insert_id()
+    {
+        return mysql_insert_id();
+    }
+    
     // TODO: m2m support w/joins
     public static function connect()
     {

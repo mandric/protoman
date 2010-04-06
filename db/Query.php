@@ -4,7 +4,7 @@
 class Query extends ArrayObject
 {
     public static $db_conn = false;
-    public static $db_callback = false;
+    public static $db_class = false;
     
     private $table = '';
     
@@ -19,7 +19,7 @@ class Query extends ArrayObject
     // TODO: Define injection points
     private $injections = array();
     
-    private static $operators = array('>', '>=', '=', '<=', '<', '!=', 'like', 'in');
+    private static $operators = array('>', '>=', '=', '<=', '<', '!=', 'like', 'not like', 'in', 'not in');
     private $fields = false;
     
     private static $injection_points = array();
@@ -186,9 +186,14 @@ class Query extends ArrayObject
         return $query;
     }
     
-    public function run()
+    public function run($raw = false)
     {
-        $results = call_user_func(Query::$db_callback, $this->build());
+        $results = call_user_func(array(Query::$db_class, 'query'), $this->build());
+        
+        if ($raw)
+        {
+            return $results;
+        }
         
         foreach ($results as $result)
         {

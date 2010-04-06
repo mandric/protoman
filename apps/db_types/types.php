@@ -479,13 +479,13 @@ class ForeignKeyField implements SingleRelationType
     
     public function formField()
     {
-        $objs = new $this->class();
-        $objs = $objs->getAll();
+        $q = new Query($this->class);
+        $q->run();
         
         Response::$context['field_name'] = $this->name;
         Response::$context['field_label'] = $this->label;
         Response::$context['field_value'] = ($this->value && $this->value->id) ? $this->value->id : $this->default ;
-        Response::$context['field_options'] = $objs;
+        Response::$context['field_options'] = $q;
         
         return Response::renderTemplate('db_types', 'foreign_key.php');
     }
@@ -689,12 +689,12 @@ class ManyToManyField implements MultipleRelationType
             $this->retrieve();
         }
         
-        $objs = new $this->class();
-        $objs = $objs->getAll();
+        $q = new Query($this->class);
+        $q->run();
         
         Response::$context['field_name'] = $this->name;
         Response::$context['field_label'] = $this->label;
-        Response::$context['field_options'] = $objs;
+        Response::$context['field_options'] = $q;
         
         Response::$context['field_value_ids'] = array();
         
