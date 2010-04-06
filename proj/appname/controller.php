@@ -3,6 +3,12 @@
 
 class AppController extends Controller
 {
+    public function testNamed()
+    {
+        $route = Controller::reverse('nomtest', 1, 'alpha');
+        echo $route;
+    }
+    
     public function testQuery()
     {
         $q = new Query('user');

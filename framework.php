@@ -167,7 +167,7 @@ if (DEBUG)
     echo "<hr /><pre>";
     
     echo "Routes: ";
-    print_r(Framework::$routes);
+    print_r(Controller::$routes);
     
     echo "Types: ";
     print_r(Framework::$types);

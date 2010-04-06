@@ -3,11 +3,52 @@
 
 class Controller
 {
+    public static $routes = array();
+    public static $named_routes = array();
+    
+    public static function reverse()
+    {
+        $args = func_get_args();
+        
+        if (!count($args))
+        {
+            throw new Exception("reverse() expects at least 1 argument");
+        }
+        
+        $name = $args[0];
+        $args = array_slice($args, 1);
+        
+        if (!in_array($name, array_keys(Controller::$named_routes)))
+        {
+            throw new Exception("reverse() called with invalid route name: {$name}");
+        }
+        
+        $route = Controller::$named_routes[$name];
+        
+        $url = ($route[0]) ? "/{$route[0]}" : '' ;
+        $route = $route[1];
+        
+        $matches = array();
+        $mct = preg_match_all("/\([^)]+\)/", $route, $matches);
+        
+        if ($mct != count($args))
+        {
+            throw new Exception("Incorrect number of arguments to reverse(): expected {$mct}, got " . count($args));
+        }
+        
+        foreach ($matches[0] as $idx => $match)
+        {
+            $route = str_replace($match, $args[$idx], $route);
+        }
+        
+        return $url . $route;
+    }
+    
     public static function process($querystring, $routes=false)
     {
         if (!$routes)
         {
-            $routes = Framework::$routes;
+            $routes = Controller::$routes;
         }
         
         // TODO: Replace this with something else?  Hackish but OK?
@@ -50,7 +91,7 @@ class Controller
                 {
                     if (in_array($route, Framework::$apps))
                     {
-                        return Controller::process($matches[1], Framework::$routes[$route]);
+                        return Controller::process($matches[1], Controller::$routes[$route]);
                     }
                 }
             }

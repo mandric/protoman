@@ -4,7 +4,6 @@
 class Framework
 {
     public static $apps = array();
-    public static $routes = array();
     public static $types = array();
     public static $controllers = array();
 }
@@ -34,18 +33,29 @@ class Route
         
         if ($app)
         {
-            Framework::$routes[$app] = array();
+            Controller::$routes[$app] = array();
         }
         
-        foreach ($routes as $url => $method)
+        foreach ($routes as $url => $methods)
         {
             if ($app)
             {
-                Framework::$routes[$app][$url] = $method;
+                Controller::$routes[$app][$url] = $methods;
             }
             else
             {
-                Framework::$routes[$url] = $method;
+                Controller::$routes[$url] = $methods;
+            }
+            
+            if (is_array($methods))
+            {
+                foreach ($methods as $value)
+                {
+                    if (is_string($value))
+                    {
+                        Controller::$named_routes[$value] = array($app, $url);
+                    }
+                }
             }
         }
     }
