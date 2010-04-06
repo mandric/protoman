@@ -49,7 +49,7 @@ class Query extends ArrayObject
         
         if (is_string($value))
         {
-            $value = "'" . mysql_real_escape_string($value) . "'";
+            $value = "'" . call_user_func(array(Query::$db_class, 'escape_string'), $value) . "'";
         }
         else if (!is_numeric($value))
         {

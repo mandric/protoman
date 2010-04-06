@@ -107,7 +107,7 @@ abstract class Saveable
     
     public function load($id = false)
     {
-        $id = mysql_escape_string(trim( ($id) ? $id : $this->id->get() ));
+        $id = call_user_func(array(Query::$db_class, 'escape_string'), trim( ($id) ? $id : $this->id->get() ));
         
         if ($id)
         {
@@ -356,7 +356,7 @@ abstract class Saveable
     
     public function delete()
     {
-        $id = mysql_real_escape_string($this->id->get());
+        $id = call_user_func(array(Query::$db_class, 'escape_string'), $this->id->get());
         $delete = "delete from `{$this->type}` where id='$id'";
         
         if (call_user_func(array(Query::$db_class, 'delete'), $delete))

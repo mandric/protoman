@@ -26,6 +26,11 @@ class Mysql implements DbAdapter
         return true;
     }
     
+    public static function escape_string($string)
+    {
+        return mysql_real_escape_string($string);
+    }
+    
     public static function select($query)
     {
         $results = array();

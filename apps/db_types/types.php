@@ -45,7 +45,7 @@ class CharField implements Type
         
         if ($this->default)
         {
-            $default = mysql_real_escape_string($this->default);
+            $default = call_user_func(array(Query::$db_class, 'escape_string'), $this->default);
             $create[] = "default '{$default}'";
         }
         
@@ -79,7 +79,7 @@ class CharField implements Type
     
     public function databaseValue()
     {
-        return "'" . mysql_real_escape_string($this->value) . "'";
+        return "'" . call_user_func(array(Query::$db_class, 'escape_string'), $this->value) . "'";
     }
     
     public function displaySafe()
@@ -139,7 +139,7 @@ class PasswordField extends CharField
     
     public function databaseValue()
     {
-        return "'" . mysql_real_escape_string($this->value) . "'";
+        return "'" . call_user_func(array(Query::$db_class, 'escape_string'), $this->value) . "'";
     }
     
     public function displaySafe()
@@ -313,7 +313,7 @@ class TextField implements Type
         
         if ($this->default)
         {
-            $default = mysql_real_escape_string($this->default);
+            $default = call_user_func(array(Query::$db_class, 'escape_string'), $this->default);
             $create[] = "default '{$default}'";
         }
         
@@ -347,7 +347,7 @@ class TextField implements Type
     
     public function databaseValue()
     {
-        $value = mysql_real_escape_string($this->value);
+        $value = call_user_func(array(Query::$db_class, 'escape_string'), $this->value);
         return "'{$value}'";
     }
     
