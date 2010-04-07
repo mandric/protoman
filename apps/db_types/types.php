@@ -398,7 +398,7 @@ class ForeignKeyField implements SingleRelationType
         $this->source_type = $source->type;
         $this->source_id = $source->id;
         
-        $this->class = $args[0];
+        $this->class = strtolower($args[0]);
         $this->name = $name;
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
@@ -443,8 +443,6 @@ class ForeignKeyField implements SingleRelationType
         }
         
         return ($this->value = $value);
-        
-        // TODO: Error/exception on bad set?
     }
     
     public function validate()

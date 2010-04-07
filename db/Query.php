@@ -33,7 +33,7 @@ class Query extends ArrayObject
         return parent::__construct(array());
     }
     
-    private function type_clean($value)
+    public static function type_clean($value)
     {
         if (is_array($value))
         {
@@ -41,7 +41,7 @@ class Query extends ArrayObject
             
             foreach ($value as $raw)
             {
-                $cleaned_values[] = $this->type_clean($raw);
+                $cleaned_values[] = Query::type_clean($raw);
             }
             
             return "(" . implode(',', $cleaned_values) . ")";
@@ -71,7 +71,7 @@ class Query extends ArrayObject
             throw new Exception("Attempting to filter table {$this->table} with bad operator {$operator}");
         }
         
-        $value = $this->type_clean($value);
+        $value = Query::type_clean($value);
         
         $this->filters[$field][] = array($operator => $value);
         

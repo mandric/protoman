@@ -187,10 +187,10 @@ abstract class Saveable
         {
             if ( is_object($this->$key) && is_a($this->$key, 'Type') )
             {
-                $previous = $this->$key;
+                $previous = $this->$key->get();
                 $this->$key->set($value);
                 
-                if ($previous->id != $this->$key->id)
+                if ($previous != $this->$key->get())
                 {
                     $this->dirty = true;
                 }
@@ -300,8 +300,10 @@ abstract class Saveable
             
             foreach ($dbkeys as $idx => $key)
             {
-                $pairs[$key] = $dbvals[$idx];
+                $pairs[] = "{$key} = {$dbvals[$idx]}";
             }
+            
+            $pairs = implode(',', $pairs);
             
             $update = "update `{$this->type}` set {$pairs} where `id`={$id}";
             
