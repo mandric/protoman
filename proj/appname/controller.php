@@ -5,7 +5,7 @@ class AppController extends Controller
 {
     public function testNamed()
     {
-        $route = Controller::reverse('nomtest', 1, 'alpha');
+        $route = Controller::reverse('object_detail_test', '1', 'alpha');
         echo $route;
     }
     

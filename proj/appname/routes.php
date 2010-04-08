@@ -14,7 +14,7 @@ $login_required = array('AuthController', 'loginRequired');
 
 new Route('appname', array(
     '/test/named_routes/' => array($test_named),
-    '/bogus/(?P<id>\d+)/(?P<slug>\w+)' => array($word, 'nomtest'),
+    '/objtest/(?P<id>\d+)/(?P<slug>\w+)' => array($word, 'object_detail_test'),
     
     '/test/orm/' => array($test_orm),
     '/test/query/' => array($test_query, 'test_query'),

@@ -38,6 +38,11 @@ class Controller
         
         foreach ($matches[0] as $idx => $match)
         {
+            if (!preg_match("/^{$match}$/", $args[$idx], $matches))
+            {
+                throw new Exception("Got bad argument {$args[$idx]} for regex {$match}");
+            }
+            
             $route = str_replace($match, $args[$idx], $route);
         }
         
