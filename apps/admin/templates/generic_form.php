@@ -7,7 +7,7 @@
     <?php /* TODO: Reverse()! */ ?>
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
     <a href="<?php print Controller::reverse('admin_object_list', Response::$context['object']->type); ?>"><?php print Response::$context['object']->type; ?></a> >
-    <?php print Response::$context['object']->id; ?>
+    <?php print Response::$context['object']->toString(); ?>
 <?php Response::endBlock('breadcrumbs'); ?>
 
 <?php Response::startBlock('body'); ?>

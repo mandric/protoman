@@ -15,7 +15,7 @@
     <br /><br />
     
     <?php foreach (Response::$context['listing_objects'] as $obj): ?>
-        <a href="<?php print Controller::reverse('admin_object_view', Response::$context['listing_class'], $obj->id); ?>"><?php echo $obj->id; ?></a>
+        <a href="<?php print Controller::reverse('admin_object_view', Response::$context['listing_class'], $obj->id); ?>"><?php echo $obj->toString(); ?></a>
         <br />
     <?php endforeach; ?>
     
