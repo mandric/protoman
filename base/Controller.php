@@ -80,12 +80,15 @@ class Controller
                 {
                     foreach ($route as $method)
                     {
-                        $result = call_user_func_array($method, array_slice($matches, 1));
-                        
-                        // Return false from a controller method to prevent others from running, i.e. loginRequired
-                        if ($result === false)
+                        if (is_array($method))
                         {
-                            break;
+                            $result = call_user_func_array($method, array_slice($matches, 1));
+                            
+                            // Return false from a controller method to prevent others from running, i.e. loginRequired
+                            if ($result === false)
+                            {
+                                break;
+                            }
                         }
                     }
                     

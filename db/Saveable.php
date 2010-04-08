@@ -105,6 +105,11 @@ abstract class Saveable
         }
     }
     
+    public function toString()
+    {
+        return "{$this->type} id " . $this->id->get();
+    }
+    
     public function load($id = false)
     {
         $id = call_user_func(array(Query::$db_class, 'escape_string'), trim( ($id) ? $id : $this->id->get() ));

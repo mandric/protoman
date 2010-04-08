@@ -5,13 +5,13 @@
 
 <?php Response::startBlock('breadcrumbs'); ?>
     <?php /* TODO: Reverse()! */ ?>
-    <a href="/admin/">admin</a>
+    <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a>
 <?php Response::endBlock('breadcrumbs'); ?>
 
 <?php Response::startBlock('body'); ?>
     
     <?php foreach (Response::$context['listing_classes'] as $cls): ?>
-        <a href="<?php echo $cls; ?>/"><?php echo $cls; ?></a>
+        <a href="<?php print Controller::reverse('admin_object_list', $cls); ?>"><?php echo $cls; ?></a>
         <br />
     <?php endforeach; ?>
     

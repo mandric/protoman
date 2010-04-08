@@ -5,8 +5,8 @@
 
 <?php Response::startBlock('breadcrumbs'); ?>
     <?php /* TODO: Reverse()! */ ?>
-    <a href="/admin/">admin</a> > 
-    <a href="/admin/<?php print Response::$context['object']->type; ?>/"><?php print Response::$context['object']->type; ?></a> >
+    <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
+    <a href="<?php print Controller::reverse('admin_object_list', Response::$context['object']->type); ?>"><?php print Response::$context['object']->type; ?></a> >
     <?php print Response::$context['object']->id; ?>
 <?php Response::endBlock('breadcrumbs'); ?>
 

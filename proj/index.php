@@ -8,6 +8,7 @@ $apps = array(
     'auth',
     'appname',
     'forms',
+    'blog',
     );
 
 

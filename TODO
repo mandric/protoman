@@ -1,4 +1,10 @@
 
+Admin
+X    Generic listing and editing based on type
+X    Use Framework::$types: $varname = 'TextField'?
+    Generate tables from models
+        Track field changes; apply to DB and record in file
+
 Settings
 X    Module/plugin loading
 
@@ -11,7 +17,7 @@ X    Object caching
 
 
 DB layer
-    Generic CRUD methods
+X    Generic CRUD methods
     Query caching
 
 Apps
@@ -30,19 +36,12 @@ X        Auto-instantiate in constructor?
 URL's
 X    Dynamic URL routing by module name and view functions
 X    Completely custom URL routing, programmer-defined
-    Use 'reverse' concept from Django
-
-Admin
-    Generic listing and editing based on type
-    Specify text vs. varchar in models ('' vs "", perhaps)
-        Use Framework::$types: $varname = 'TextField'?
+X    Use 'reverse' concept from Django
 
 Form generation
-    Particularly for admin
+X    Particularly for admin
 
 Templating
-    Suggestions to user without enforcing?
-    Default methods on models specifically intended for list/detail?
 
 Caching
     Leave entirely to server?
