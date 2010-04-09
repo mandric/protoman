@@ -381,6 +381,18 @@ class TextField implements Type
 }
 
 
+class HtmlField extends TextField
+{
+    public function formField()
+    {
+        Response::$context['field_name'] = $this->name;
+        Response::$context['field_label'] = $this->label;
+        Response::$context['field_value'] = $this->displaySafe();
+        return Response::renderTemplate('db_types', 'html_textarea.php');
+    }
+}
+
+
 class ForeignKeyField implements SingleRelationType
 {
     protected $label = '';

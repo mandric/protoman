@@ -16,7 +16,7 @@ class Post extends Saveable
 {
     protected $title = array('CharField', 'label' => 'Title');
     protected $summary = array('TextField', 'label' => 'Summary');
-    protected $body = array('TextField', 'label' => 'Body');
+    protected $body = array('HtmlField', 'label' => 'Body');
     
     protected $tags = array('ManyToManyField', 'Tag', 'label' => 'Tags');
     protected $comments = array('ManyToManyField', 'comment', 'label' => 'Comments');
