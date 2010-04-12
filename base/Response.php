@@ -10,6 +10,13 @@ class Response
     private static $template_level = 0;
     private static $extends = array();
     
+    public static function error404($querystring)
+    {
+        Response::$context['querystring'] = $querystring;
+        
+        Response::renderTemplate('error404.php');
+    }
+    
     public static function startBlock($name)
     {
         if (!Response::$blocks[$name])
@@ -24,7 +31,7 @@ class Response
                 Response::$blocks['super'] = array();
             }
             
-            // TODO: Test 'super' implementation
+            // TODO: Test/fix 'super' implementation - never gets populated
             Response::$blocks['super'][$name] = Response::$blocks[$name];
         }
     }
@@ -51,6 +58,7 @@ class Response
     public static function extendTemplate()
     {
         $args = func_get_args();
+        
         Response::$extends[] = $args;
     }
     

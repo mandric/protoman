@@ -1,10 +1,9 @@
 
 <?php Response::startBlock('title'); ?>
-    Object detail (TODO: str representation here)
+    Object detail: <?php print Response::$context['object']->toString(); ?>
 <?php Response::endBlock('title'); ?>
 
 <?php Response::startBlock('breadcrumbs'); ?>
-    <?php /* TODO: Reverse()! */ ?>
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
     <a href="<?php print Controller::reverse('admin_object_list', Response::$context['object']->type); ?>"><?php print Response::$context['object']->type; ?></a> >
     <?php print Response::$context['object']->toString(); ?>
@@ -27,4 +26,4 @@
     
 <?php Response::endBlock('body'); ?>
 
-<?php Response::extendTemplate('base.html'); ?>
+<?php Response::extendTemplate('base.php'); ?>

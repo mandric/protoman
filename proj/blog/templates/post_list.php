@@ -21,4 +21,4 @@
         
 <?php Response::endBlock('body'); ?>
 
-<?php Response::extendTemplate('base.html'); ?>
+<?php Response::extendTemplate('base.php'); ?>

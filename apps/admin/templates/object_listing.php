@@ -4,7 +4,6 @@
 <?php Response::endBlock('title'); ?>
 
 <?php Response::startBlock('breadcrumbs'); ?>
-    <?php /* TODO: Reverse()! */ ?>
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
     <?php print Response::$context['listing_class']; ?>
 <?php Response::endBlock('breadcrumbs'); ?>
@@ -21,4 +20,4 @@
     
 <?php Response::endBlock('body'); ?>
 
-<?php Response::extendTemplate('base.html'); ?>
+<?php Response::extendTemplate('base.php'); ?>

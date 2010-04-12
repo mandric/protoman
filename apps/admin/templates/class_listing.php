@@ -1,10 +1,9 @@
 
 <?php Response::startBlock('title'); ?>
-    Class listing
+    Class listing - <?php Response::$blocks['super']['title']; ?>
 <?php Response::endBlock('title'); ?>
 
 <?php Response::startBlock('breadcrumbs'); ?>
-    <?php /* TODO: Reverse()! */ ?>
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a>
 <?php Response::endBlock('breadcrumbs'); ?>
 
@@ -17,4 +16,4 @@
     
 <?php Response::endBlock('body'); ?>
 
-<?php Response::extendTemplate('base.html'); ?>
+<?php Response::extendTemplate('admin', 'base.php'); ?>

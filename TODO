@@ -5,6 +5,10 @@ X    Use Framework::$types: $varname = 'TextField'?
     Generate tables from models
         Track field changes; apply to DB and record in file
 
+Templating
+    Inheritance
+    'super'
+
 Settings
 X    Module/plugin loading
 
@@ -40,8 +44,6 @@ X    Use 'reverse' concept from Django
 
 Form generation
 X    Particularly for admin
-
-Templating
 
 Caching
     Leave entirely to server?

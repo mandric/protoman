@@ -12,8 +12,7 @@ class AdminController extends Controller
             $obj->updateValues(Request::$post);
             $obj->save();
             
-            // TODO: Named 'reverse' URL
-            header("location:/admin/{$class}/{$obj->id}");
+            header("location:" . Controller::reverse('admin_object_view', $class, $obj->id));
             exit();
         }
         

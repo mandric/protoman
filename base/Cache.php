@@ -1,7 +1,6 @@
 <?php
 
 
-// TODO: Handle this better than extending Saveable just to get access to ::$instances?
 class Cache
 {
     protected static $memcache = false;

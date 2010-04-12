@@ -56,7 +56,6 @@ class Controller
             $routes = Controller::$routes;
         }
         
-        // TODO: Replace this with something else?  Hackish but OK?
         $querystring = preg_replace('/[\/]+$/', '', trim($querystring));
         
         foreach ($routes as $url => $route)
@@ -92,7 +91,6 @@ class Controller
                         }
                     }
                     
-                    // TODO: Return something chainable?  Request class?
                     return;
                 }
                 else if (is_string($route))
@@ -105,7 +103,11 @@ class Controller
             }
         }
         
-        // TODO: Conditionally catch exception in framework.php based on DEBUG setting
-        throw new Exception("404 handler being invoked for: " . $querystring);
+        if (!DEBUG)
+        {
+            throw new Exception("404 handler being invoked for: " . $querystring);
+        }
+        
+        return Response::error404($querystring);
     }
 }
