@@ -1,9 +1,11 @@
 
-<?php Response::startBlock('title'); ?>
-    An Awesome Page
-<?php Response::endBlock('title'); ?>
+{{ extends admin/base.php }}
 
-<?php Response::startBlock('body'); ?>
+{{ block title }}
+    An Awesome Page
+{{ endblock title }}
+
+{{ block body  }}
     <form method="POST">
         
         <?php print Response::$context['text']->form(); ?>
@@ -21,6 +23,4 @@
         <input type="submit" />
         
     </form>
-<?php Response::endBlock('body'); ?>
-
-<?php Response::extendTemplate('admin', 'base.php'); ?>
+{{ endblock body }}

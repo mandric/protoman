@@ -32,4 +32,9 @@ class Comment extends Saveable
 {
     protected $name = array('CharField', 'label' => 'Name');
     protected $body = array('TextField', 'label' => 'Body');
+    
+    public function toString()
+    {
+        return $this->name->get();
+    }
 }

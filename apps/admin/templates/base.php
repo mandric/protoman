@@ -2,11 +2,17 @@
 <html>
 
 <head>
-    <title><?php print Response::renderBlock('title'); ?> - ProtoAdmin</title>
+    <title>{{ block title }}ProtoAdmin{{ endblock title }}</title>
 </head>
 
 <body>
-    <?php print Response::renderBlock('body'); ?>
+    {{ block breadcrumbs }}
+        <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a>
+    {{ endblock breadcrumbs }}
+    
+    <hr />
+    
+    {{ block body }}Admin Body{{ endblock body }}
 </body>
 
 </html>

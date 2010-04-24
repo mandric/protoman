@@ -10,8 +10,6 @@ class Response
     private static $template_level = 0;
     private static $render_stack = array();
     
-    public static $log = array();
-    
     public static function error404($querystring)
     {
         Response::$context['querystring'] = $querystring;
@@ -22,12 +20,8 @@ class Response
     public static function renderTemplate()
     {
         $args = func_get_args();
-        Response::$log[] = "Rendering template: " . var_export($args, true);
         
-        //ob_start();
-        eval(' ?>' . Response::parseTemplate($args) . '<?php ');
-        $output = ob_get_contents();
-        //ob_clean();
+        $output = eval(' ?>' . Response::parseTemplate($args) . '<?php ');
         
         Response::$content .= $output;
     }

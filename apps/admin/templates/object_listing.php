@@ -1,14 +1,16 @@
 
-<?php Response::startBlock('title'); ?>
-    Listing for type: <?php print Response::$context['listing_class']; ?>
-<?php Response::endBlock('title'); ?>
+{{ extends admin/base.php }}
 
-<?php Response::startBlock('breadcrumbs'); ?>
+{{ block title }}
+    Listing for type: <?php print Response::$context['listing_class']; ?> - {{ super }}
+{{ endblock title }}
+
+{{ block breadcrumbs }}
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
     <?php print Response::$context['listing_class']; ?>
-<?php Response::endBlock('breadcrumbs'); ?>
+{{ endblock breadcrumbs }}
 
-<?php Response::startBlock('body'); ?>
+{{ block body }}
     
     <a href="<?php print Controller::reverse('admin_object_add', Response::$context['listing_class']); ?>">add a new <?php print Response::$context['listing_class']; ?></a>
     <br /><br />
@@ -18,6 +20,4 @@
         <br />
     <?php endforeach; ?>
     
-<?php Response::endBlock('body'); ?>
-
-<?php Response::extendTemplate('base.php'); ?>
+{{ endblock body }}

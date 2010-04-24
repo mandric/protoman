@@ -1,15 +1,17 @@
 
-<?php Response::startBlock('title'); ?>
-    Object detail: <?php print Response::$context['object']->toString(); ?>
-<?php Response::endBlock('title'); ?>
+{{ extends admin/base.php }}
 
-<?php Response::startBlock('breadcrumbs'); ?>
+{{ block title }}
+    Object detail: <?php print Response::$context['object']->toString(); ?> - {{ super }}
+{{ endblock title }}
+
+{{ block breadcrumbs }}
     <a href="<?php print Controller::reverse('admin_home'); ?>">admin</a> > 
     <a href="<?php print Controller::reverse('admin_object_list', Response::$context['object']->type); ?>"><?php print Response::$context['object']->type; ?></a> >
     <?php print Response::$context['object']->toString(); ?>
-<?php Response::endBlock('breadcrumbs'); ?>
+{{ endblock breadcrumbs }}
 
-<?php Response::startBlock('body'); ?>
+{{ block body }}
     
     <form method="POST">
         
@@ -24,6 +26,4 @@
         
     </form>
     
-<?php Response::endBlock('body'); ?>
-
-<?php Response::extendTemplate('base.php'); ?>
+{{ endblock body }}

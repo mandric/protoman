@@ -20,5 +20,5 @@
         <br /><br />
         
     <?php endforeach; ?>
-        
+    
 {{ endblock body }}

@@ -188,10 +188,18 @@ abstract class Saveable
     
     public function updateValues($values)
     {
+        $manyrels = array();
+        
         foreach ($values as $key => $value)
         {
             if ( is_object($this->$key) && is_a($this->$key, 'Type') )
             {
+                if (is_a($this->$key, 'MultipleRelationType') && !$this->id->get())
+                {
+                    $manyrels[$key] = $value;
+                    continue;
+                }
+                
                 $previous = $this->$key->get();
                 $this->$key->set($value);
                 
@@ -204,6 +212,16 @@ abstract class Saveable
             {
                 $this->$key = $value;
                 $this->dirty = true;
+            }
+        }
+        
+        if (count($manyrels))
+        {
+            $this->save();
+            
+            foreach ($manyrels as $key => $value)
+            {
+                $this->$key->set($value);
             }
         }
         
