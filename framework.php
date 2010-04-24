@@ -161,6 +161,8 @@ Controller::process($_SERVER['QUERY_STRING']);
 
 echo Response::$content;
 
+echo "<pre>" . var_export(Response::$log, true) . "</pre>";
+
 /*
 if (DEBUG)
 {

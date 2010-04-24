@@ -1,13 +1,15 @@
 
-<?php Response::startBlock('title'); ?>
-    Posts
-<?php Response::endBlock('title'); ?>
+{{ extends base.php }}
 
-<?php Response::startBlock('breadcrumbs'); ?>
-    <a href="<?php print Controller::reverse('blog_post_list'); ?>">Posts</a>
-<?php Response::endBlock('breadcrumbs'); ?>
+{{ block title }}
+    Posts - {{ super }}
+{{ endblock title }}
 
-<?php Response::startBlock('body'); ?>
+{{ block breadcrumbs }}
+    {{ super }} > <a href="<?php print Controller::reverse('blog_post_list'); ?>">Posts</a>
+{{ endblock breadcrumbs }}
+
+{{ block body }}
     
     <?php foreach (Response::$context['posts'] as $post): ?>
         
@@ -19,6 +21,4 @@
         
     <?php endforeach; ?>
         
-<?php Response::endBlock('body'); ?>
-
-<?php Response::extendTemplate('base.php'); ?>
+{{ endblock body }}

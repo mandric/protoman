@@ -8,7 +8,9 @@ class Response
     private static $blocks = array();
     
     private static $template_level = 0;
-    private static $extends = array();
+    private static $render_stack = array();
+    
+    public static $log = array();
     
     public static function error404($querystring)
     {
@@ -17,55 +19,65 @@ class Response
         Response::renderTemplate('error404.php');
     }
     
-    public static function startBlock($name)
-    {
-        if (!Response::$blocks[$name])
-        {
-            Response::$blocks[$name] = false;
-            ob_start();
-        }
-        else
-        {
-            if (!Response::$blocks['super'])
-            {
-                Response::$blocks['super'] = array();
-            }
-            
-            // TODO: Test/fix 'super' implementation - never gets populated
-            Response::$blocks['super'][$name] = Response::$blocks[$name];
-        }
-    }
-    
-    public static function endBlock($name)
-    {
-        if (!Response::$blocks[$name])
-        {
-            Response::$blocks[$name] = ob_get_contents();
-            ob_end_clean();
-        }
-    }
-    
-    public static function renderBlock($name)
-    {
-        if (Response::$blocks[$name])
-        {
-            return Response::$blocks[$name];
-        }
-        
-        throw new Exception("Attempted to render nonexistent block: $name");
-    }
-    
-    public static function extendTemplate()
-    {
-        $args = func_get_args();
-        
-        Response::$extends[] = $args;
-    }
-    
     public static function renderTemplate()
     {
         $args = func_get_args();
+        Response::$log[] = "Rendering template: " . var_export($args, true);
         
+        //ob_start();
+        eval(' ?>' . Response::parseTemplate($args) . '<?php ');
+        $output = ob_get_contents();
+        //ob_clean();
+        
+        Response::$content .= $output;
+    }
+    
+    public static function parseTemplate($args)
+    {
+        $template = Response::parseBlocks(Response::loadTemplate($args));
+        
+        $extends = array();
+        preg_match_all('/{{ extends (?<template_name>[^ ]+) }}/ms', $template, $extends);
+        
+        foreach ($extends['template_name'] as $idx => $template_name)
+        {
+            $template = str_replace($extends[0][$idx], '', $template);
+            
+            $template = Response::parseTemplate(explode('/', $template_name));
+        }
+        
+        return $template;
+    }
+    
+    private static function parseBlocks($template)
+    {
+        $blocks = array();
+        $count = preg_match_all('/{{ block (?P<block_name>[^ ]+) }}(?P<content>.*){{ endblock (?P=block_name) }}/ms', $template, $blocks);
+        
+        if (!$count)
+        {
+            return $template;
+        }
+        
+        foreach ($blocks['block_name'] as $idx => $block_name)
+        {
+            $content = $blocks['content'][$idx];
+            
+            if (Response::$blocks[$block_name])
+            {
+                $content = str_replace('{{ super }}', $content, Response::$blocks[$block_name]);
+            }
+            
+            $template = str_replace($blocks[0][$idx], $content, $template);
+            
+            Response::$blocks[$block_name] = $content;
+        }
+        
+        return Response::parseBlocks($template);
+    }
+    
+    private static function loadTemplate($args)
+    {
         switch (count($args))
         {
             case 1:
@@ -91,9 +103,7 @@ class Response
                 throw new Exception("Invalid renderTemplate call: Takes 1 or 2 arguments, given: " . print_r($args, true));
         }
         
-        $content = false;
-        
-        Response::$template_level++;
+        $template = false;
         
         foreach ($path_parts as $parts)
         {
@@ -101,35 +111,17 @@ class Response
             
             if (is_file($path))
             {
-                ob_start();
-                require($path);
-                $content = ob_get_contents();
-                ob_end_clean();
+                $template = file_get_contents($path);
                 
                 break;
             }
         }
         
-        if ($content === false)
+        if ($template === false)
         {
-            throw new Exception("Attempted to load a nonexistent template");
+            throw new Exception("Attempted to render nonexistent template: " . print_r($args, true));
         }
         
-        Response::$template_level--;
-        
-        if (Response::$template_level > 0)
-        {
-            return $content;
-        }
-        
-        // TODO: Run through $extends backwards?
-        foreach (Response::$extends as $key => $args)
-        {
-            unset(Response::$extends[$key]);
-            call_user_func_array(array('Response', 'renderTemplate'), $args);
-            return;
-        }
-        
-        Response::$content .= $content;
+        return $template;
     }
 }

@@ -2,13 +2,21 @@
 <html>
 
 <head>
-    <title><?php print Response::renderBlock('title'); ?></title>
+    <title>{{ block title }}ProtoMan!{{ endblock title }}</title>
 </head>
 
 <body>
-    <?php print Response::renderBlock('breadcrumbs'); ?>
+    {{ block breadcrumbs }}Home{{ endblock breadcrumbs }}
+    
     <br /><br />
-    <?php print Response::renderBlock('body'); ?>
+    
+    {{ block body }}
+        Default body.
+        
+        {{ block internal-test }}
+            Testing internal block.
+        {{ endblock internal-test }}
+    {{ endblock body }}
 </body>
 
 </html>
