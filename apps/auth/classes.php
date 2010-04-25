@@ -8,4 +8,9 @@ class User extends Saveable
     
     protected $username = array('CharField', 'label' => 'Username');
     protected $password = array('PasswordField', 'label' => 'Password');
+    
+    public function toString()
+    {
+        return $this->username->get();
+    }
 }

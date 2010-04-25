@@ -80,6 +80,8 @@ $apps = array_merge($builtin_apps, $apps);
 
 Framework::$apps = $apps;
 
+$class_ct = count(get_declared_classes());
+
 foreach ($loadables as $filename)
 {
     foreach ($apps as $app)
@@ -102,6 +104,41 @@ foreach ($loadables as $filename)
         {
             require_once($loadable);
         }
+        
+        if ($filename == 'classes.php')
+        {
+            $declared = array_slice(get_declared_classes(), $class_ct);
+            
+            foreach ($declared as $classname)
+            {
+                $classname = strtolower($classname);
+                
+                if (is_subclass_of($classname, 'Saveable'))
+                {
+                    Saveable::$subclasses[] = $classname;
+                }
+                else if (is_subclass_of($classname, 'Controller'))
+                {
+                    Framework::$controllers[$classname] = array();
+                    
+                    foreach (get_class_methods($classname) as $method)
+                    {
+                        Framework::$controllers[$classname][] = strtolower($method);
+                    }
+                }
+                else
+                {
+                    $reflector = new ReflectionClass($classname);
+                    
+                    if ($reflector->implementsInterface('Type'))
+                    {
+                        Framework::$types[] = $classname;
+                    }
+                }
+            }
+            
+            $class_ct += count($declared);
+        }
     }
 }
 
@@ -123,28 +160,6 @@ foreach ($declared as $classname)
         continue;
     }
     
-    if (is_subclass_of($classname, 'Saveable'))
-    {
-        Saveable::$subclasses[] = $classname;
-    }
-    else if (is_subclass_of($classname, 'Controller'))
-    {
-        Framework::$controllers[$classname] = array();
-        
-        foreach (get_class_methods($classname) as $method)
-        {
-            Framework::$controllers[$classname][] = strtolower($method);
-        }
-    }
-    else
-    {
-        $reflector = new ReflectionClass($classname);
-        
-        if ($reflector->implementsInterface('Type'))
-        {
-            Framework::$types[] = $classname;
-        }
-    }
 }
 
 

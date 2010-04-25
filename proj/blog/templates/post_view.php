@@ -1,5 +1,5 @@
 
-{{ extends base.php }}
+{{ extends blog/post_list.php }}
 
 {{ block title }}
     <?php print Response::$context['post']->title; ?>

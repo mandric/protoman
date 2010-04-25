@@ -6,7 +6,7 @@
 {{ endblock title }}
 
 {{ block breadcrumbs }}
-    {{ super }} > <a href="<?php print Controller::reverse('blog_post_list'); ?>">Posts</a>
+    <a href="<?php print Controller::reverse('blog_post_list'); ?>">Posts</a>
 {{ endblock breadcrumbs }}
 
 {{ block body }}
