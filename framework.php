@@ -1,6 +1,5 @@
 <?php
 
-
 define('FRAMEWORK_PATH', substr(__FILE__, 0, strrpos(__FILE__, '/') + 1));
 define('FRAMEWORK_APPS_PATH', FRAMEWORK_PATH . 'apps/');
 
@@ -29,7 +28,6 @@ catch (Exception $e)
         throw new Exception($e->getMessage());
     }
 }
-
 define('MC_ENABLED', $mc);
 
 
@@ -76,9 +74,27 @@ $builtin_apps = array(
     'db_types',
     );
 
+$test_apps = array_merge($apps);
+
 $apps = array_merge($builtin_apps, $apps);
 
 Framework::$apps = $apps;
+
+function get_loadable_path($app, $filename)
+{
+    $loadable = $app . "/" . $filename;
+    
+    if (is_file($loadable))
+    {
+        return $loadable;
+    }
+    else if (is_file(FRAMEWORK_APPS_PATH . $loadable))
+    {
+        return FRAMEWORK_APPS_PATH . $loadable;
+    }
+    
+    return false;
+}
 
 $class_ct = count(get_declared_classes());
 
@@ -86,21 +102,9 @@ foreach ($loadables as $filename)
 {
     foreach ($apps as $app)
     {
-        $loadable = $app . "/" . $filename;
+        $loadable = get_loadable_path($app, $filename);
         
-        $import = false;
-        
-        if (is_file($loadable))
-        {
-            $import = true;
-        }
-        else if (is_file(FRAMEWORK_APPS_PATH . $loadable))
-        {
-            $import = true;
-            $loadable = FRAMEWORK_APPS_PATH . $loadable;
-        }
-        
-        if ($import)
+        if ($loadable)
         {
             require_once($loadable);
         }
@@ -172,7 +176,17 @@ Request::$cookie = &$_COOKIE;
 Request::$server = &$_SERVER;
 Request::$env = &$_ENV;
 
-Controller::process($_SERVER['QUERY_STRING']);
+
+if (php_sapi_name() == 'cli' && (!in_array('REMOTE_ADDR', array_keys($_SERVER)) || empty($_SERVER['REMOTE_ADDR'])) )
+{
+    Controller::processCli($_SERVER['argv'], $test_apps);
+}
+else
+{
+    // Processing a web request
+    Controller::processWeb($_SERVER['QUERY_STRING']);
+}
+
 
 echo Response::$content;
 

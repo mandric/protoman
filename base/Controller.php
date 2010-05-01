@@ -49,7 +49,37 @@ class Controller
         return $url . $route;
     }
     
-    public static function process($querystring, $routes=false)
+    public static function processCli($argv, $apps)
+    {
+        $output = array();
+        
+        switch ($argv[1])
+        {
+            // Command: php index.php test [appname]
+            case 'test':
+                if (count($argv) >= 3)
+                {
+                    if (in_array($argv[2], $apps))
+                    {
+                        $apps = array($argv[2]);
+                    }
+                    else
+                    {
+                        throw new Exception("Specified invalid app to test: {$argv[2]}");
+                    }
+                }
+                
+                $output = array_merge($output, Framework::test($apps));
+                
+                break;
+            default:
+                throw new Exception("Invalid command provided");
+        }
+        
+        Response::$content .= implode("\n", $output) . "\n";
+    }
+    
+    public static function processWeb($querystring, $routes=false)
     {
         if (!$routes)
         {
@@ -97,7 +127,7 @@ class Controller
                 {
                     if (in_array($route, Framework::$apps))
                     {
-                        return Controller::process($matches[1], Controller::$routes[$route]);
+                        return Controller::processWeb($matches[1], Controller::$routes[$route]);
                     }
                 }
             }
