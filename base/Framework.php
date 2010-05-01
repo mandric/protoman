@@ -6,6 +6,8 @@ class Framework
     public static $apps = array();
     public static $types = array();
     public static $controllers = array();
+    
+    public static $tests = array();
 }
 
 

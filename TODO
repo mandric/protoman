@@ -6,8 +6,8 @@ X    Use Framework::$types: $varname = 'TextField'?
         Track field changes; apply to DB and record in file
 
 Templating
-    Inheritance
-    'super'
+X    Inheritance
+X    'super'
 
 Settings
 X    Module/plugin loading
