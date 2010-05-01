@@ -13,7 +13,7 @@ class CharField implements Type
     protected $source_type = '';
     public $source_id = 0;
     
-    public function __construct($source, $name, $args)
+    public function __construct($source, $name, $args=array())
     {
         $this->source_id = $source->id;
         $this->source_type = $source->type;
@@ -31,7 +31,7 @@ class CharField implements Type
         }
     }
     
-    public function sql()
+    public function sql($drop=false)
     {
         $create = array();
         $create[] = "`{$this->name}` varchar({$this->length})";
@@ -176,7 +176,7 @@ class IntegerField implements Type
     protected $source_type = '';
     public $source_id = 0;
     
-    public function __construct($source, $name, $args)
+    public function __construct($source, $name, $args=array())
     {
         $this->source_id = $source->id;
         $this->source_type = $source->type;
@@ -185,7 +185,7 @@ class IntegerField implements Type
         
         $this->label = ($args['label']) ? $args['label'] : $name ;
         
-        foreach (array('default', 'null', 'length', 'hidden') as $var)
+        foreach (array('default', 'null', 'length', 'hidden', 'unsigned') as $var)
         {
             if ($args[$var])
             {
@@ -194,7 +194,7 @@ class IntegerField implements Type
         }
     }
     
-    public function sql()
+    public function sql($drop=false)
     {
         $create = array();
         $create[] = "`{$this->name}` int({$this->length})";
@@ -270,6 +270,46 @@ class IntegerField implements Type
 }
 
 
+class PrimaryKeyField extends IntegerField
+{
+    public $hidden = true;
+    protected $unsigned = true;
+    
+    public function __construct($source, $name, $args=array())
+    {
+        $this->source_id = $source->id;
+        $this->source_type = $source->type;
+        
+        $this->name = $name;
+        
+        $this->label = ($args['label']) ? $args['label'] : $name ;
+        
+        foreach (array('default', 'null', 'length', 'hidden') as $var)
+        {
+            if ($args[$var])
+            {
+                $this->$var = $args[$var];
+            }
+        }
+    }
+    
+    public function sql($drop=false)
+    {
+        $create = array();
+        $create[] = "`{$this->name}` int({$this->length}) unsigned not null primary key auto_increment";
+        
+        return implode(' ', $create);
+    }
+    
+    public function formField()
+    {
+        Response::$context['field_label'] = $this->label;
+        Response::$context['field_value'] = $this->displaySafe();
+        return Response::renderTemplate('db_types', 'primary_key_type.php');
+    }
+}
+
+
 class TextField implements Type
 {
     protected $label = '';
@@ -281,7 +321,7 @@ class TextField implements Type
     protected $source_type = '';
     public $source_id = 0;
     
-    public function __construct($source, $name, $args)
+    public function __construct($source, $name, $args=array())
     {
         $this->source_type = $source->type;
         $this->source_id = $source->id;
@@ -299,7 +339,7 @@ class TextField implements Type
         }
     }
     
-    public function sql()
+    public function sql($drop=false)
     {
         $create = array();
         $create[] = "`{$this->name}` text";
@@ -405,7 +445,7 @@ class ForeignKeyField implements SingleRelationType
     protected $source_type = '';
     public $source_id = 0;
     
-    public function __construct($source, $name, $args)
+    public function __construct($source, $name, $args=array())
     {
         $this->source_type = $source->type;
         $this->source_id = $source->id;
@@ -424,7 +464,7 @@ class ForeignKeyField implements SingleRelationType
         }
     }
     
-    public function sql()
+    public function sql($drop=false)
     {
         $create = array();
         $create[] = "`{$this->name}` int(11) unsigned not null default {$this->default}";
@@ -512,7 +552,7 @@ class ManyToManyField implements MultipleRelationType
     protected $source_type = '';
     public $source_id = 0;
     
-    public function __construct($source, $name, $args)
+    public function __construct($source, $name, $args=array())
     {
         $this->source_type = $source->type;
         $this->source_id = $source->id;
@@ -531,11 +571,17 @@ class ManyToManyField implements MultipleRelationType
         }
     }
     
-    public function sql()
+    public function sql($drop=false)
     {
-        $create = array();
+        $join_table = Saveable::joinTable($this->class, $this->source_type);
         
-        return implode(' ', $create);
+        $cols = array();
+        $col = new IntegerField($this->class, $this->class . "_id", array('unsigned' => true));
+        $cols[] = $col->sql();
+        $col = new IntegerField($this->source_type, $this->source_type . "_id", array('unsigned' => true));
+        $cols[] = $col->sql();
+        
+        return ($drop) ? "drop table `{$join_table}`;" : "create table `{$join_table}` (" . implode(', ', $cols) . ");" ;
     }
     
     public function save()

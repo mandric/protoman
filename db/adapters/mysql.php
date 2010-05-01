@@ -60,6 +60,16 @@ class Mysql implements DbAdapter
         return Mysql::query($query);
     }
     
+    public static function create($query)
+    {
+        return Mysql::query($query);
+    }
+    
+    public static function drop($query)
+    {
+        return Mysql::query($query);
+    }
+    
     private static function query($query)
     {
         Query::$queries[] = $query;

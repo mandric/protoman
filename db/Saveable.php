@@ -4,20 +4,21 @@
 
 abstract class Saveable
 {
-    protected $id = array('IntegerField', 'auto_increment' => true, 'hidden' => true);
+    protected $id = array('PrimaryKeyField');
     
     protected $type = '';
     protected $dirty = true;
     protected $is_saveable = true;
     protected $cache_index = false;
     
+    public static $apps = array();
     public static $subclasses = array();
     
     private static $instances = array();
     private static $singlerels = array();
     private static $manyrels = array();
     
-    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'subclasses', 'singlerels', 'manyrels', 'is_saveable', 'cache_index');
+    private $ignore = array('dirty', 'ignore', 'type', 'instances', 'apps', 'subclasses', 'singlerels', 'manyrels', 'is_saveable', 'cache_index');
     
     public function __construct($values = array())
     {
@@ -108,6 +109,41 @@ abstract class Saveable
     public function toString()
     {
         return "{$this->type} id " . $this->id->get();
+    }
+    
+    public function sql($drop=false)
+    {
+        $cols = array();
+        $tables = array();
+        
+        foreach (get_class_vars($this->type) as $key => $value)
+        {
+            if (!in_array($key, $this->ignore))
+            {
+                if (is_array($value))
+                {
+                    $value_type = $value[0];
+                    $attr = new $value_type($this, $key, array_slice($value, 1));
+                    
+                    if (!is_a($attr, 'MultipleRelationType'))
+                    {
+                        $cols[] = $attr->sql($drop);
+                    }
+                    else
+                    {
+                        $tables[] = $attr->sql($drop);
+                    }
+                }
+                else
+                {
+                    throw new Exception("Bad type definition on {$this->type}");
+                }
+            }
+        }
+        
+        $tables[] = ($drop) ? "drop table `{$this->type}`;" : "create table `{$this->type}` (" . implode(", ", $cols) . ");" ;
+        
+        return $tables;
     }
     
     public function load($id = false)
@@ -252,19 +288,16 @@ abstract class Saveable
         return $fields;
     }
     
+    public static function joinTable($table1, $table2)
+    {
+        $tables = array($table1, $table2);
+        sort($tables, SORT_STRING);
+        return strtolower(implode('_', $tables));
+    }
+    
     public function unjoin($type)
     {
-        if (in_array($type, array_keys($table_types)))
-        {
-            $type = $table_types[$type];
-        }
-        
-        $table = array_keys($table_types, $type);
-        $table = $table[0];
-        
-        $tables = array($this->type, $table);
-        sort($tables, SORT_STRING);
-        $join_table = implode('_', $tables);
+        $join_table = Saveable::joinTable($this->type, $type);
         
         $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "'";
         
@@ -409,9 +442,7 @@ abstract class Saveable
                 try
                 {
                     // Delete from join table
-                    $tables = array($this->type, $name);
-                    sort($tables, SORT_STRING);
-                    $join_table = implode('_', $tables);
+                    $join_table = Saveable::joinTable($this->type, $name);
                     
                     $delete = "delete from `{$join_table}` where `{$this->type}_id`='" . $this->id->get() . "'";
                     call_user_func(array(DB_TYPE, 'delete'), $delete);

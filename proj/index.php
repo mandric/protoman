@@ -39,4 +39,10 @@ $dbs = array(
     );
 
 
-require_once('init.php');
+//define('MC_HOST', 'localhost');
+//define('MC_PORT', '11211');
+// Or...
+//define('MC_PIDFILE', 'unix:///var/run/memcached/memcached.sock');
+
+
+require_once('init_local.php');

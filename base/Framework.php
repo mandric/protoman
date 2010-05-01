@@ -8,67 +8,6 @@ class Framework
     public static $controllers = array();
     
     public static $tests = array();
-    
-    public static function test($apps)
-    {
-        $output = array();
-        
-        foreach ($apps as $app)
-        {
-            $loadable = get_loadable_path($app, 'test.php');
-            
-            if ($loadable)
-            {
-                require_once($loadable);
-                
-                $output[] = "Testing app: {$app}";
-                
-                $test_count = count($tests);
-                $failure_count = 0;
-                
-                foreach ($tests as $key => $value)
-                {
-                    try
-                    {
-                        if (is_string($key))
-                        {
-                            $test = $key;
-                            $expected = $value;
-                        }
-                        else
-                        {
-                            $test = $value;
-                            $expected = 1;
-                        }
-                        
-                        eval('$result = ' . $test . ';');
-                    }
-                    catch (Exception $e)
-                    {
-                        $result = "Exception: " . $e->getMessage();
-                    }
-                    
-                    if ($result != $expected)
-                    {
-                        $output[] = " FAILURE: {$test}";
-                        $output[] = "  Expected: {$expected}";
-                        $output[] = "  Result: {$result}";
-                        $failure_count++;
-                    }
-                }
-                
-                $output[] = "Results for app: {$app}";
-                $output[] = " {$test_count} tests";
-                $output[] = " {$failure_count} failures";
-            }
-            else
-            {
-                $output[] = "No tests found for app: {$app}";
-            }
-        }
-        
-        return $output;
-    }
 }
 
 
@@ -127,9 +66,9 @@ class Route
 
 interface Type
 {
-    public function __construct($source, $name, $args);
+    public function __construct($source, $name, $args=array());
     
-    public function sql();
+    public function sql($drop=false);
     
     public function populate($value);
     public function &get();

@@ -35,7 +35,7 @@ class AdminController extends Controller
     
     public function classListing()
     {
-        Response::$context['listing_classes'] = Saveable::$subclasses;
+        Response::$context['listing_apps'] = Saveable::$apps;
         
         return Response::renderTemplate('admin', 'class_listing.php');
     }
