@@ -112,7 +112,7 @@ abstract class Saveable
     
     public function load($id = false)
     {
-        $id = call_user_func(array(Query::$db_class, 'escape_string'), trim( ($id) ? $id : $this->id->get() ));
+        $id = call_user_func(array(DB_TYPE, 'escape_string'), trim( ($id) ? $id : $this->id->get() ));
         
         if ($id)
         {
@@ -268,7 +268,7 @@ abstract class Saveable
         
         $delete = "delete from `{$join_table}` where `{$this->type}_id` = '" . $this->id->get() . "'";
         
-        if (!call_user_func(array(Query::$db_class, 'delete'), $delete) && DEBUG)
+        if (!call_user_func(array(DB_TYPE, 'delete'), $delete) && DEBUG)
         {
             throw new Exception("Failed to unjoin with query {$delete}");
         }
@@ -330,7 +330,7 @@ abstract class Saveable
             
             $update = "update `{$this->type}` set {$pairs} where `id`={$id}";
             
-            if (call_user_func(array(Query::$db_class, 'update'), $update))
+            if (call_user_func(array(DB_TYPE, 'update'), $update))
             {
                 return $id;
             }
@@ -342,9 +342,9 @@ abstract class Saveable
             
             $insert = "insert into `{$this->type}` ({$dbkeys}) values ({$dbvals})";
             
-            if (call_user_func(array(Query::$db_class, 'insert'), $insert))
+            if (call_user_func(array(DB_TYPE, 'insert'), $insert))
             {
-                $this->id->populate(call_user_func(array(Query::$db_class, 'insert_id')));
+                $this->id->populate(call_user_func(array(DB_TYPE, 'insert_id')));
                 
                 if (!$this->id->get() && DEBUG)
                 {
@@ -381,10 +381,10 @@ abstract class Saveable
     
     public function delete()
     {
-        $id = call_user_func(array(Query::$db_class, 'escape_string'), $this->id->get());
+        $id = call_user_func(array(DB_TYPE, 'escape_string'), $this->id->get());
         $delete = "delete from `{$this->type}` where id='$id'";
         
-        if (call_user_func(array(Query::$db_class, 'delete'), $delete))
+        if (call_user_func(array(DB_TYPE, 'delete'), $delete))
         {
             $relations = array();
             
@@ -414,7 +414,7 @@ abstract class Saveable
                     $join_table = implode('_', $tables);
                     
                     $delete = "delete from `{$join_table}` where `{$this->type}_id`='" . $this->id->get() . "'";
-                    call_user_func(array(Query::$db_class, 'delete'), $delete);
+                    call_user_func(array(DB_TYPE, 'delete'), $delete);
                 }
                 catch (Exception $e)
                 {
@@ -428,7 +428,7 @@ abstract class Saveable
                 foreach (Saveable::$singlerels[$this->type] as $target_type)
                 {
                     $update = "update `{$target_type}` set `{$this->type}`=0 where `{$this->type}`='" . $this->id->get() . "'";
-                    call_user_func(array(Query::$db_class, 'update'), $update);
+                    call_user_func(array(DB_TYPE, 'update'), $update);
                 }
             }
             

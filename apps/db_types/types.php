@@ -45,7 +45,7 @@ class CharField implements Type
         
         if ($this->default)
         {
-            $default = call_user_func(array(Query::$db_class, 'escape_string'), $this->default);
+            $default = call_user_func(array(DB_TYPE, 'escape_string'), $this->default);
             $create[] = "default '{$default}'";
         }
         
@@ -79,7 +79,7 @@ class CharField implements Type
     
     public function databaseValue()
     {
-        return "'" . call_user_func(array(Query::$db_class, 'escape_string'), $this->value) . "'";
+        return "'" . call_user_func(array(DB_TYPE, 'escape_string'), $this->value) . "'";
     }
     
     public function displaySafe()
@@ -139,7 +139,7 @@ class PasswordField extends CharField
     
     public function databaseValue()
     {
-        return "'" . call_user_func(array(Query::$db_class, 'escape_string'), $this->value) . "'";
+        return "'" . call_user_func(array(DB_TYPE, 'escape_string'), $this->value) . "'";
     }
     
     public function displaySafe()
@@ -313,7 +313,7 @@ class TextField implements Type
         
         if ($this->default)
         {
-            $default = call_user_func(array(Query::$db_class, 'escape_string'), $this->default);
+            $default = call_user_func(array(DB_TYPE, 'escape_string'), $this->default);
             $create[] = "default '{$default}'";
         }
         
@@ -347,7 +347,7 @@ class TextField implements Type
     
     public function databaseValue()
     {
-        $value = call_user_func(array(Query::$db_class, 'escape_string'), $this->value);
+        $value = call_user_func(array(DB_TYPE, 'escape_string'), $this->value);
         return "'{$value}'";
     }
     
@@ -638,7 +638,7 @@ class ManyToManyField implements MultipleRelationType
             order by t.id asc
             ";
         
-        $joins = call_user_func(array(Query::$db_class, 'select'), $joins);
+        $joins = call_user_func(array(DB_TYPE, 'select'), $joins);
         
         if ($joins && count($joins))
         {
@@ -738,7 +738,7 @@ class ManyToManyField implements MultipleRelationType
         $pairs = "`{$this->source_type}_id` = '{$this->source_id}', `{$object->type}_id` = '{$object->id}'";
         $insert = "insert into `{$join_table}` set {$pairs}";
         
-        if (!call_user_func(array(Query::$db_class, 'insert'), $insert) && DEBUG)
+        if (!call_user_func(array(DB_TYPE, 'insert'), $insert) && DEBUG)
         {
             throw new Exception("Failed to save relation with query {$insert}");
         }
@@ -752,7 +752,7 @@ class ManyToManyField implements MultipleRelationType
         
         $delete = "delete from `{$join_table}` where `{$this->source_type}_id` = '" . $this->source_id . "' and `{$object->type}_id` = '{$object->id}'";
         
-        if (!call_user_func(array(Query::$db_class, 'delete'), $delete) && DEBUG)
+        if (!call_user_func(array(DB_TYPE, 'delete'), $delete) && DEBUG)
         {
             throw new Exception("Failed to delete relation with query {$delete}");
         }

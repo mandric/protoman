@@ -35,7 +35,7 @@ class Mysql implements DbAdapter
     {
         $results = array();
         
-        $rows = mysql_query($query, Query::$db_conn);
+        $rows = Mysql::query($query);
         
         while ($row = mysql_fetch_assoc($rows))
         {
@@ -62,6 +62,8 @@ class Mysql implements DbAdapter
     
     private static function query($query)
     {
+        Query::$queries[] = $query;
+        
         return mysql_query($query, Query::$db_conn);
     }
 }

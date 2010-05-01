@@ -51,7 +51,7 @@ $loadables = array(
 // The order here is important!  Changing it could break loading.
 require_once('db/Query.php');
 require_once('db/DbAdapter.php');
-require_once('db/Mysql.php');
+require_once('db/adapters/' . DB_TYPE . '.php');
 require_once('db/Saveable.php');
 
 require_once('base/Cache.php');
@@ -61,8 +61,7 @@ require_once('base/Request.php');
 require_once('base/Response.php');
 
 
-call_user_func(array('mysql', 'connect'));
-Query::$db_class = 'mysql';
+call_user_func(array(DB_TYPE, 'connect'));
 
 
 if (is_file('routes.php'))
@@ -185,31 +184,12 @@ else
 {
     // Processing a web request
     Controller::processWeb($_SERVER['QUERY_STRING']);
+    
+    if (DEBUG)
+    {
+        Response::$content .= "<hr /><pre>" . print_r(Query::$queries, true) . "</pre>";
+    }
 }
 
 
 echo Response::$content;
-
-/*
-if (DEBUG)
-{
-    echo "<hr /><pre>";
-    
-    echo "Routes: ";
-    print_r(Controller::$routes);
-    
-    echo "Types: ";
-    print_r(Framework::$types);
-    
-    echo "Controllers: ";
-    print_r(Framework::$controllers);
-    
-    echo "Request params: ";
-    print_r(Request::$params);
-    
-    echo "Response context: ";
-    print_r(Response::$context);
-    
-    echo "</pre>";
-}
-*/

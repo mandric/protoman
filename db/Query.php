@@ -4,7 +4,6 @@
 class Query extends ArrayObject
 {
     public static $db_conn = false;
-    public static $db_class = false;
     
     private $table = '';
     
@@ -23,6 +22,8 @@ class Query extends ArrayObject
     private $fields = false;
     
     private static $injection_points = array();
+    
+    public static $queries = array();
     
     public function __construct($table)
     {
@@ -49,7 +50,7 @@ class Query extends ArrayObject
         
         if (is_string($value))
         {
-            $value = "'" . call_user_func(array(Query::$db_class, 'escape_string'), $value) . "'";
+            $value = "'" . call_user_func(array(DB_TYPE, 'escape_string'), $value) . "'";
         }
         else if (!is_numeric($value))
         {
@@ -188,7 +189,8 @@ class Query extends ArrayObject
     
     public function run($raw = false)
     {
-        $results = call_user_func(array(Query::$db_class, 'select'), $this->build());
+        $query = $this->build();
+        $results = call_user_func(array(DB_TYPE, 'select'), $query);
         
         if ($raw)
         {

@@ -50,7 +50,9 @@ class Framework
                     
                     if ($result != $expected)
                     {
-                        $output[] = "FAILURE: {$test}\n Expected: {$expected}\n Result: {$result}\n";
+                        $output[] = " FAILURE: {$test}";
+                        $output[] = "  Expected: {$expected}";
+                        $output[] = "  Result: {$result}";
                         $failure_count++;
                     }
                 }
