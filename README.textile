@@ -3,6 +3,102 @@ h2. ProtoMan!
 
 As Djangophiles interested in taking on PHP work without all the pain (we know it well), Comfy Chair decided to implement our favorite parts of Django and turn them into a relatively simple PHP framework.  This is the result-in-progress.
 
+h3. Quickstart
+
+The proj/ directory is what we use for testing; it contains a basic blog and some associated tests.
+
+h5. classes.php
+
+This file holds your models.  They're defined based on defined types; there are several in the framework already, and you can create custom types if you'd like.
+
+h5. routes.php
+
+This is where you define your URL's and specify the controller methods they should hook up to.
+
+h5. controller.php
+
+Define a controller class for your app to handle requests and render templates.
+
+h5. tests.php
+
+Write your tests here.  Your script will be executed on a clean, updated set of tables.  For a line of code that should be evaluated as an actual test, place the expected result on the line immediately beneath it, followed by two newlines; all other lines of code should be separated by two newlines.
+
+Comments (two-slash single-line only) are allowed and will be ignored.
+
+h5. types.php
+
+Optionally define your own field types.
+
+h5. index.php
+
+Include apps and define your database configuration and debug mode.
+
+h4. Database population and command line interface
+
+Using the CLI commands, you can automatically build your table structure based on the databases you've defined and the apps you've included.
+
+h5. rebuild [db] [app]
+
+Running this command will drop and recreate all tables for models defined in the specified app (for example, "php index.php dev blog").  'all' can be used instead of an app name to rebuild all tables in the project.
+
+h5. test [app]
+
+Again, 'all' can be used instead of an app name.  This will drop and rebuild all tables for the app within the 'test' database, then run all tests in the tests.php file for the app you specify (or all tests.php files in your project).
+
+h4. Web server configuration
+
+We use a Django-style URL scheme, so you'll need URL rewriting for the routing to work.  The Apache configuration has not yet been tested; the nginx server block is from a working installation.
+
+h5. Apache
+
+<pre>RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?$1 [QSA,L]</pre>
+
+h5. nginx
+
+<pre>server {
+    listen          80;
+    server_name     protoman;
+    server_name_in_redirect off;
+    
+    access_log      /var/log/nginx/protoman.access_log main;
+    error_log       /var/log/nginx/protoman.error_log info;
+    
+    root /home/phu/internal/protoman/proj;
+
+     location ~* ^.+.(html|jpg|jpeg|gif|png|ico|css|pdf|txt|js)$ {
+         expires 30d;
+         break;
+     }
+
+    location /
+    {
+        if (!-f $request_filename) 
+        {
+            rewrite  ^(.*)$  /index.php?$1  last;
+            break;
+        }
+
+        if (!-d $request_filename) 
+        {
+            rewrite  ^(.*)$  /index.php?$1  last;
+            break;
+        }
+    }
+
+    location ~ .*\.php$
+    {
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass 127.0.0.1:9017;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /home/phu/internal/protoman/proj$fastcgi_script_name;
+    }
+}</pre>
+
 h3. Features
 
 There's a relatively small set of "holy crap that's awesome" stuff we figured we needed for this project to actually be useful to us commercially.
@@ -36,7 +132,11 @@ h4. Incomplete
 
 h4. Current items of interest
 
+* Expand apps/auth to handle groups and permissions
+* Add tests to built-in apps
+* Documentation for common operations
 * Clean up Saveable (base ORM) class (was ported from being a standalone ORM, needs love)
+* Find a better way of including framework.php (put on PHP path?)
 
 h3. Project parameters
 
