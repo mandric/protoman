@@ -1,0 +1,62 @@
+
+h2. ProtoMan!
+
+As Djangophiles interested in taking on PHP work without all the pain (we know it well), Comfy Chair decided to implement our favorite parts of Django and turn them into a relatively simple PHP framework.  This is the result-in-progress.
+
+h3. Features
+
+There's a relatively small set of "holy crap that's awesome" stuff we figured we needed for this project to actually be useful to us commercially.
+
+h4. Complete
+
+* App-based site design
+* Multi-database configuration for dev/prod/test environments
+* Sandboxed testing framework based on simple PHP with simple reporting
+* Regex-based project- and app-based URL routing with arbitrarily-defined slugs/id's
+* 'Reverse' URL building
+* Automatic form generation based on defined types
+* 'contrib'-style basic apps including basic auth (user)
+* Arbitrary caching integration (memcached stock) with session fallback
+* Flexible database types with validation support
+* Automatic table creation based on models
+* Automatic admin interface generation
+* Native many-to-many support with basic PHP object/array operators
+* Simple template inheritance (without interfering with the use of standard PHP)
+* Support for calling multiple views per request
+* Basic ORM queries (get by ID, filter, order, group, insert, update, delete)
+* Database abstraction
+
+h4. Incomplete
+
+* Advanced ORM queries (e.g. Q objects)
+* Database-agnostic create statements (needs minor updates to be generic)
+* Migration-style table updates for schema changes
+* Group and permission models for auth module
+* Generic, gracefully-failing AJAX support through generated links
+
+h4. Current items of interest
+
+* Clean up Saveable (base ORM) class (was ported from being a standalone ORM, needs love)
+
+h3. Project parameters
+
+Working within the confines of PHP, we're limited in certain ways (some of which we've chosen voluntarily).
+
+h4. Requirements
+
+* Maintain compatibility with PHP 5.2.x
+
+h4. Concessions/omissions
+
+* Namespaces (unsupported pre-5.3)
+* Decorators (using queued views instead)
+
+h3. License
+
+h4. Creative Commons Attribution-Noncommercial-Share Alike
+
+The protoman framework is available only under "this Creative Commons license":http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode.
+
+You can also view a "brief overview of the license":http://creativecommons.org/licenses/by-nc-sa/3.0/.
+
+If you want to use protoman commercially, or if you'd like to have your own site built/rebuil on protoman, please contact Comfy Chair Consulting, Inc. (the copyright holder) at: info@comfychairconsulting.com

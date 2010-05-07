@@ -170,7 +170,27 @@ class Cli
             
             if ($loadable)
             {
-                require_once($loadable);
+                $file = trim(preg_replace(array('/<\?php/', '/\?>/', '/\/\/[^\n]*\n/'), '', file_get_contents($loadable)));
+                $raw_tests = preg_split('/\n{2,}/', $file);
+                
+                $tests = array();
+                
+                foreach ($raw_tests as $key => $test)
+                {
+                    $parts = explode("\n", $test);
+                    
+                    switch (count($parts))
+                    {
+                        case 1:
+                            $tests[] = $parts[0];
+                            break;
+                        case 2:
+                            $tests[$parts[0]] = $parts[1];
+                            break;
+                        default:
+                            throw new Exception("Tests must be one line of code or one line of code, a newline and an expected value followed by two newlines");
+                    }
+                }
                 
                 $output[] = "Testing app: {$app}";
                 
