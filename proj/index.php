@@ -45,4 +45,4 @@ $dbs = array(
 //define('MC_PIDFILE', 'unix:///var/run/memcached/memcached.sock');
 
 
-require_once('init_local.php');
+require_once('../framework.php');
