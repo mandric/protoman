@@ -59,4 +59,4 @@ The protoman framework is available only under "this Creative Commons license":h
 
 You can also view a "brief overview of the license":http://creativecommons.org/licenses/by-nc-sa/3.0/.
 
-If you want to use protoman commercially, or if you'd like to have your own site built/rebuil on protoman, please contact Comfy Chair Consulting, Inc. (the copyright holder) at: info@comfychairconsulting.com
+If you want to use protoman commercially, or if you'd like to have your own site built/rebuilt on protoman, please contact Comfy Chair Consulting, Inc. (the copyright holder) at: info@comfychairconsulting.com
